@@ -29,7 +29,6 @@ class WebSocketService {
   private reconnectAttempts = 0;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private connectionMonitorTimer: NodeJS.Timeout | null = null;
-  private error: string | null = null;
   private isApplicationActive = false;
   
   private messageHandlers: Record<WebSocketMessageType, Set<MessageHandler>> = {
@@ -65,11 +64,11 @@ class WebSocketService {
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
   
-  private cleanupEventListeners(): void {
-    window.removeEventListener('online', this.handleOnline);
-    window.removeEventListener('offline', this.handleOffline);
-    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-  }
+  // private cleanupEventListeners(): void {
+  //   window.removeEventListener('online', this.handleOnline);
+  //   window.removeEventListener('offline', this.handleOffline);
+  //   document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+  // }
   private startConnectionMonitor(): void {
     this.stopConnectionMonitor();
     
@@ -153,7 +152,6 @@ class WebSocketService {
       
       this.client = socket;
     } catch (error) {
-      this.error = "Failed to establish WebSocket connection";
       this.updateConnectionState('DISCONNECTED');
       
       this.reconnect();
@@ -161,7 +159,6 @@ class WebSocketService {
   }
 
   private handleOpen = (): void => {
-    this.error = null;
     this.reconnectAttempts = 0;
     this.updateConnectionState('CONNECTED');
   };
@@ -221,17 +218,14 @@ class WebSocketService {
   private handleError = (event: Event): void => {
     const errorMessage = event.toString();
     if (errorMessage.includes('429') || errorMessage.includes('rate') || errorMessage.includes('limit')) {
-      this.error = "WebSocket rate limited";
-      
       import('react-hot-toast').then(toast => {
         toast.default.error("Too many WebSocket requests. Please wait before reconnecting.", {
           duration: 5000,
           id: 'websocket-rate-limit-error',
         });
       });
-    } else {
-      this.error = "WebSocket connection error";
-    }};
+    }
+  };
 
   private handleMessage = (event: MessageEvent): void => {
     try {
@@ -242,6 +236,7 @@ class WebSocketService {
       import('./WebSocketEventBus').then(({ webSocketEventBus }) => {
         webSocketEventBus.publish(data);
       }).catch(error => {
+        console.error(`Failed to parse WebSocket message: ${event.data}`, error);
       });
       
       const handlers = this.messageHandlers[data.type as WebSocketMessageType];

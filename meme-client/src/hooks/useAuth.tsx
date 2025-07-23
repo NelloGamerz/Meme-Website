@@ -28,11 +28,6 @@ interface AuthError {
 export const API_URL =
   import.meta.env.VITE_API_URL;
 
-interface AuthUser {
-  username: string
-  userId: string
-}
-
 export const useAuthCheck = () => {
   const user = useAuthStore.use.user()
   const isAuthenticated = useAuthStore.use.isAuthenticated()

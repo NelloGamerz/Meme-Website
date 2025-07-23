@@ -490,11 +490,11 @@ const MemeDetailPage: React.FC = () => {
     };
   }, [isCommentModalOpen]);
 
-  const handleLoadMore = () => {
-    if (hasMoreMemesRef.current && !isLoadingMoreMemesRef.current) {
-      fetchMoreMemes(currentPageRef.current + 1);
-    }
-  };
+  // const handleLoadMore = () => {
+  //   if (hasMoreMemesRef.current && !isLoadingMoreMemesRef.current) {
+  //     fetchMoreMemes(currentPageRef.current + 1);
+  //   }
+  // };
 
   const handleOptionsClick = (id: string | null) => {
     setActiveOptionsId(id);

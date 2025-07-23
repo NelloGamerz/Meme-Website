@@ -6,13 +6,6 @@ import { useAuthStore } from "../store/useAuthStore"
 import { Notification } from "../types/mems"
 import { WebSocketMessage } from "../services/WebSocketService"
 
-interface UserData {
-  userId: string
-  username: string
-  email?: string
-  profilePicture?: string
-}
-
 interface NotificationData {
   type: string;
   senderUsername?: string;

@@ -10,7 +10,6 @@ import type {
   ApiSearchResult,
 } from "../types/mems";
 // import type { UserApi, SearchResult } from "../types/search";
-import type { AxiosProgressEvent } from "axios";
 import { useWebSocketStore } from "../hooks/useWebSockets";
 import { mapApiMemeToMeme } from "../utils/memeMappers";
 import { getCurrentAuthUser } from "../utils/authHelpers";
@@ -1309,11 +1308,9 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
         const { useWebSocketStore } = await import("../hooks/useWebSockets");
 
-        let isCurrentlySaved = false;
         let meme = null;
 
         set((state) => {
-          isCurrentlySaved = state.savedMemes.some((m: Meme) => m.id === id);
           meme =
             (state.selectedMeme && state.selectedMeme.id === id
               ? state.selectedMeme

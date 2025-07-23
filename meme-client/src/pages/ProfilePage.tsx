@@ -416,7 +416,7 @@ export const ProfilePage: React.FC = () => {
           ) : (
             <>
               <TrueMasonryGrid className="px-1 sm:px-2">
-                {currentMemes.map((meme, index) => (
+                {currentMemes.map((meme) => (
                   <div
                     key={meme.id}
                     className=""

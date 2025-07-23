@@ -49,7 +49,6 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   });
   const [shouldScroll, setShouldScroll] = useState(false);
   const [isScrollPaused, setIsScrollPaused] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [localIsLiked, setLocalIsLiked] = useState(false);
   const [localIsSaved, setLocalIsSaved] = useState(false);
   const isOptionsOpen = activeOptionsId === meme?.id;
@@ -192,7 +191,6 @@ export const MemeCard: React.FC<MemeCardProps> = ({
       setIsHovered(true);
       if (isVideo && videoRef.current) {
         videoRef.current.play().catch(() => {});
-        setIsPlaying(true);
       }
     }
   };
@@ -203,7 +201,6 @@ export const MemeCard: React.FC<MemeCardProps> = ({
       if (isVideo && videoRef.current) {
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
-        setIsPlaying(false);
       }
     }
   };

@@ -242,6 +242,7 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
           } else if (isCurrentUserAction) {
           }
         }).catch(error => {
+          console.error("Error loading user store:", error);
         });
       });
       

@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useEffect } from 'react'
+import { createContext, ReactNode, useEffect } from 'react'
 import { useAuthCheck } from '../hooks/useAuth'
 import { updateGlobalAuthState } from '../utils/authHelpers'
 import { setCurrentAuthUser } from '../store/useUserStore'

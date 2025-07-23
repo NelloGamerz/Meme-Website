@@ -189,8 +189,6 @@ interface UserActions {
 
   clearViewedProfile: () => void;
   invalidateProfileCache: (username: string) => void;
-
-  setCurrentViewContext: (isOwnProfile: boolean) => void;
 }
 
 type UserStore = UserState & UserActions;
@@ -297,11 +295,6 @@ const useRawUserStore = create<UserStore>()(
       return state.viewedUserMemeList.length > 0
         ? state.viewedUserMemeList
         : state.loggedInUserMemeList;
-    },
-
-    setCurrentViewContext: (isOwnProfile: boolean) => {
-      set((state) => {
-      });
     },
 
     setAuthUser: (authUser: { userId: string; username: string } | null) => {
