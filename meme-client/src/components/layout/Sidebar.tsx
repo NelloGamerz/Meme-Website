@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => 
                 }}
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 flex items-center justify-center border border-gray-200 dark:border-gray-600">
                 <span className="text-gray-600 dark:text-gray-300 font-medium text-sm">
                   {(loggedInUserName || user.username || "U")
                     .split(" ")

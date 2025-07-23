@@ -65,7 +65,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onNavigate, 
                     />
                   </div>
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center transition-all duration-200 hover:bg-blue-100 dark:hover:bg-blue-900/30">
+                  <div className="w-6 h-6 rounded-full border bg-white dark:bg-gray-700 flex items-center justify-center transition-all duration-200 hover:bg-blue-100 dark:hover:bg-blue-900/30">
                     <span className="text-gray-600 dark:text-gray-300 font-medium text-xs transition-all duration-200">
                       {(user.username || "U")
                         .split(" ")
