@@ -38,6 +38,7 @@ public class SecurityConfig {
                                                                 "/reset-password/**",
                                                                 "/auth/check-username",
                                                                 "/memes/memepage/**",
+                                                                "/health/check",
                                                                 "/ws/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
