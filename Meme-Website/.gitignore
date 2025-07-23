@@ -1,0 +1,69 @@
+# Ignore log files
+logs/
+*.log
+*.log.*
+log/
+logfile.log
+nohup.out
+
+# Ignore application runtime files
+*.pid
+*.seed
+*.swp
+
+# Ignore compiled and build files
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Ignore Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot specific files
+HELP.md
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+# Ignore application properties with secrets
+application-prod.yml
+application.yml
+.env
+config/
+secrets/
+logback.xml
+Dockerfile
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/ico" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meme Website</title>
+    <script>
+      (function() {
+        try {
+          document.documentElement.classList.remove('light', 'dark', 'system');
+          
+          const savedTheme = localStorage.getItem('theme');
+          
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else if (savedTheme === 'light') {
+            document.documentElement.classList.add('light');
+          } else if (savedTheme === 'system' || !savedTheme) {
+            document.documentElement.classList.add('system');
+            
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+          }
+          
+          window.__themeInitialized = true;
+          
+          window.addEventListener('storage', function(e) {
+            if (e.key === 'theme' || e.key === null) {
+              const newTheme = localStorage.getItem('theme');
+              if (newTheme) {
+                document.documentElement.classList.remove('light', 'dark', 'system');
+                
+                if (newTheme === 'system') {
+                  document.documentElement.classList.add('system');
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+                } else {
+                  document.documentElement.classList.add(newTheme);
+                }
+                
+              }
+            }
+          });
+          
+        } catch (e) {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

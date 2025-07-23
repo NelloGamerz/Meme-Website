@@ -1,0 +1,303 @@
+/* Theme-specific styles */
+
+/* Light theme variables */
+:root,
+.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --button-primary-bg: #3b82f6;
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #f3f4f6;
+  --button-secondary-text: #1f2937;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-text: #111827;
+  --header-bg: #ffffff;
+  --nav-bg: #ffffff;
+  --nav-text: #4b5563;
+  --nav-active: #3b82f6;
+  --link-color: #2563eb;
+  --link-hover: #1d4ed8;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+  --hover-bg: #f3f4f6;
+  --hover-text: #2563eb;
+  --active-bg: #e0e7ff;
+  --active-text: #4f46e5;
+  --sidebar-hover-bg: #eff6ff;
+  --sidebar-hover-text: #3b82f6;
+  --sidebar-active-bg: #dbeafe;
+  --sidebar-active-text: #2563eb;
+}
+
+/* Dark theme variables */
+.dark {
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --card-bg: #1f2937;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --button-primary-bg: #3b82f6;
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: #374151;
+  --button-secondary-text: #f9fafb;
+  --input-bg: #111827;
+  --input-border: #4b5563;
+  --input-text: #f9fafb;
+  --header-bg: #111827;
+  --nav-bg: #111827;
+  --nav-text: #d1d5db;
+  --nav-active: #60a5fa;
+  --link-color: #60a5fa;
+  --link-hover: #93c5fd;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+  --hover-bg: #374151;
+  --hover-text: #60a5fa;
+  --active-bg: #1e40af;
+  --active-text: #93c5fd;
+  --sidebar-hover-bg: rgba(59, 130, 246, 0.15);
+  --sidebar-hover-text: #60a5fa;
+  --sidebar-active-bg: rgba(59, 130, 246, 0.2);
+  --sidebar-active-text: #60a5fa;
+}
+
+/* Apply theme variables to elements */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Apply theme to common elements */
+
+/* Background colors */
+.bg-white, .dark .bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+.bg-gray-800, .dark .bg-gray-800 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-gray-900, .dark .bg-gray-900 {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-gray-100, .dark .bg-gray-100,
+.bg-gray-50, .dark .bg-gray-50 {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Text colors */
+.text-gray-900, .dark .text-gray-900 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-800, .dark .text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+.text-gray-700, .dark .text-gray-700 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-600, .dark .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-500, .dark .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-400, .dark .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-300, .dark .text-gray-300 {
+  color: var(--text-secondary) !important;
+}
+
+.text-gray-200, .dark .text-gray-200 {
+  color: var(--text-secondary) !important;
+}
+
+.text-black, .dark .text-black {
+  color: var(--text-primary) !important;
+}
+
+.text-white, .dark .text-white {
+  color: var(--text-primary) !important;
+}
+
+/* Border colors */
+.border-gray-300, .dark .border-gray-300 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-200, .dark .border-gray-200 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-100, .dark .border-gray-100 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-700, .dark .border-gray-700 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-600, .dark .border-gray-600 {
+  border-color: var(--border-color) !important;
+}
+
+.border-gray-800, .dark .border-gray-800 {
+  border-color: var(--border-color) !important;
+}
+
+/* Form elements */
+input, select, textarea {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+.dark input, .dark select, .dark textarea {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+/* Specific styles for MemeDetailPage */
+.dark .bg-slate-100, .dark .bg-slate-200 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark .text-slate-600, .dark .text-slate-700, .dark .text-slate-800 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-slate-400, .dark .text-slate-500 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .border-slate-200, .dark .border-slate-300 {
+  border-color: var(--border-color) !important;
+}
+
+/* Hover states with better contrast */
+/* Dark theme hover states */
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.dark .hover\:text-gray-900:hover {
+  color: var(--hover-text) !important;
+}
+
+.dark .hover\:text-white:hover {
+  color: var(--hover-text) !important;
+}
+
+.dark .hover\:border-gray-300:hover {
+  border-color: var(--border-color) !important;
+}
+
+/* Light theme hover states */
+.hover\:bg-gray-50:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.hover\:text-gray-900:hover {
+  color: var(--hover-text) !important;
+}
+
+.hover\:text-black:hover {
+  color: var(--hover-text) !important;
+}
+
+.hover\:border-gray-300:hover {
+  border-color: var(--border-color) !important;
+}
+
+/* Button hover states - Dark */
+.dark .hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.dark .hover\:bg-red-700:hover {
+  background-color: #b91c1c !important;
+}
+
+.dark .hover\:bg-green-700:hover {
+  background-color: #047857 !important;
+}
+
+/* Button hover states - Light */
+.hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.hover\:bg-red-700:hover {
+  background-color: #b91c1c !important;
+}
+
+.hover\:bg-green-700:hover {
+  background-color: #047857 !important;
+}
+
+/* Sidebar specific styles - Dark */
+.dark .sidebar-item:hover {
+  background-color: var(--sidebar-hover-bg) !important;
+}
+
+.dark .sidebar-item:hover .sidebar-icon {
+  color: var(--sidebar-hover-text) !important;
+}
+
+.dark .sidebar-item.active {
+  background-color: var(--sidebar-active-bg) !important;
+}
+
+.dark .sidebar-item.active .sidebar-icon {
+  color: var(--sidebar-active-text) !important;
+}
+
+/* Sidebar specific styles - Light */
+.sidebar-item:hover {
+  background-color: var(--sidebar-hover-bg) !important;
+}
+
+.sidebar-item:hover .sidebar-icon {
+  color: var(--sidebar-hover-text) !important;
+}
+
+.sidebar-item.active {
+  background-color: var(--sidebar-active-bg) !important;
+}
+
+.sidebar-item.active .sidebar-icon {
+  color: var(--sidebar-active-text) !important;
+}
+
+/* Force theme update */
+.theme-updated {
+  /* This class is just used to force a re-render */
+}

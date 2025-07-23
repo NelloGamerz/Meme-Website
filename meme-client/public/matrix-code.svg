@@ -1,0 +1,37 @@
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @keyframes fall {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(100%); }
+    }
+    .code {
+      font-family: monospace;
+      font-size: 14px;
+      fill: #22c55e;
+      opacity: 0.3;
+    }
+    .code1 { animation: fall 10s linear infinite; animation-delay: 0s; }
+    .code2 { animation: fall 15s linear infinite; animation-delay: 2s; }
+    .code3 { animation: fall 12s linear infinite; animation-delay: 5s; }
+    .code4 { animation: fall 18s linear infinite; animation-delay: 1s; }
+    .code5 { animation: fall 14s linear infinite; animation-delay: 3s; }
+  </style>
+  
+  <text x="10" y="20" class="code code1">01001101 01000101 01001101 01000101</text>
+  <text x="150" y="50" class="code code2">01000100 01000001 01001110 01001011</text>
+  <text x="80" y="80" class="code code3">01010110 01000001 01010101 01001100 01010100</text>
+  <text x="200" y="110" class="code code4">01001100 01001111 01001100 01011010</text>
+  <text x="30" y="140" class="code code5">01001101 01000101 01001101 01000101 01010011</text>
+  
+  <text x="120" y="170" class="code code1">01001101 01000101 01001101 01000101</text>
+  <text x="250" y="200" class="code code2">01000100 01000001 01001110 01001011</text>
+  <text x="180" y="230" class="code code3">01010110 01000001 01010101 01001100 01010100</text>
+  <text x="300" y="260" class="code code4">01001100 01001111 01001100 01011010</text>
+  <text x="130" y="290" class="code code5">01001101 01000101 01001101 01000101 01010011</text>
+  
+  <text x="220" y="320" class="code code1">01001101 01000101 01001101 01000101</text>
+  <text x="350" y="350" class="code code2">01000100 01000001 01001110 01001011</text>
+  <text x="280" y="380" class="code code3">01010110 01000001 01010101 01001100 01010100</text>
+  <text x="400" y="410" class="code code4">01001100 01001111 01001100 01011010</text>
+  <text x="230" y="440" class="code code5">01001101 01000101 01001101 01000101 01010011</text>
+</svg>

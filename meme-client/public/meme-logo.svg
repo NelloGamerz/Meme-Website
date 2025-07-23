@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Meme Logo</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <!-- Cool Sunglasses Face -->
+        <circle cx="100" cy="100" r="90" fill="#FFD700" />
+        <!-- Sunglasses -->
+        <path d="M50,80 L90,80 L95,90 L50,90 Z" fill="#000000" />
+        <path d="M110,80 L150,80 L150,90 L105,90 Z" fill="#000000" />
+        <rect x="45" y="75" width="110" height="10" fill="#000000" />
+        <!-- Smile -->
+        <path d="M60,130 Q100,160 140,130" stroke="#000000" stroke-width="6" stroke-linecap="round" />
+        <!-- Text -->
+        <text x="100" y="180" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#000000">MEME MASTER</text>
+    </g>
+</svg>

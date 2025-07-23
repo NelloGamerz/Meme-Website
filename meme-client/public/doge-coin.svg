@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100px" height="100px" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Doge Coin</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle cx="50" cy="50" r="45" fill="#F9BF3B" />
+        <circle cx="50" cy="50" r="40" fill="#F5AB35" />
+        <text x="50" y="40" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="#8E5C13">DOGE</text>
+        <text x="50" y="60" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="#8E5C13">WOW</text>
+        <text x="50" y="75" font-family="Arial" font-size="8" font-weight="bold" text-anchor="middle" fill="#8E5C13">SUCH COIN</text>
+    </g>
+</svg>
