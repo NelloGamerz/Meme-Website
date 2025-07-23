@@ -1,27 +1,27 @@
 spring:
     application:
-        name: Meme-Website
+       name: Meme-Website
     data:
-        redis:
-            host: redis-18758.c264.ap-south-1-1.ec2.redns.redis-cloud.com
-            port: 18758
-            password: 9PN6MFoAcyDv7Nigh5MkrKLmTNfMQUB1
-        mongodb:
-            uri: mongodb+srv://softwaredev1112:gMc6fdJhLD2PEKUp@meme-website.i3lry.mongodb.net/?retryWrites=true&w=majority&appName=Meme-Website
-            database: Meme-Website
-            auto-index-creation: true
+       redis:
+           host: ${REDIS_HOST}
+           port: ${REDIS_PORT}
+           password: ${REDIS_PASSWORD}
+       mongodb:
+           uri: ${MONGODB_URI}
+           database: ${MONGODB_DATABASE}
+           auto-index-creation: true
     mail:
-        host: smtp.gmail.com
-        port: 587
-        username: softwaredev1112@gmail.com
-        password: qbvu ustb zrjy vzki
-        properties:
-            mail:
-                smtp:
-                    auth: true
-                    starttls:
-                        enable: true
-                        requeired : true
+       host: ${MAIL_HOST}
+       port: ${MAIL_PORT}
+       username: ${MAIL_USERNAME}
+       password: ${MAIL_PASSWORD}
+       properties:
+           mail:
+               smtp:
+                   auth: true
+                   starttls:
+                       enable: true
+                       required: true
 
     servlet:
         multipart:
@@ -29,67 +29,67 @@ spring:
             max-request-size: 15MB
 
 server:
-    port: 8080
-
-logging:
-    level:
-        root: INFO
+   port: ${PORT:8080}
 
 jwt:
-    secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+    secret: ${SECURITY_SECRET_KEY}
+
+
+
+logging:
+   level:
+       root: INFO
 
 frontend:
-    # url: https://meme-vault-blond.vercel.app/
-    url: http://localhost:5173
-    websocket:
-        # url: https://meme-vault-blond.vercel.app
-        url: http://localhost:5173
+   url: ${FRONTEND_URL}
+   websocket:
+        url: ${FRONTEND_WEBSOCKET_URL}
 
 aws:
-    region: ap-south-1
+    region: ${AWS_REGION}
     s3:
-        bucket: meme-vault-media-bucket
+      bucket: ${AWS_S3_BUCKET_NAME}
     credentials:
-        access-key: AKIAR2QZPLKPBQQYT6AV
-        secret-key: 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
+        accessKey: ${AWS_ACCESS_KEY_ID}
+        secretKey: ${AWS_SECRET_ACCESS_KEY}
 
 rate-limiting:
   limits:
     api:
       auth:
-        maxTokens: 10
-        refillRatePerSec: 0.1
+        maxTokens: ${RL_API_AUTH_MAX:10}
+        refillRatePerSec: ${RL_API_AUTH_REFILL:0.1}
       token:
-        maxTokens: 5
-        refillRatePerSec: 0.05
+        maxTokens: ${RL_API_TOKEN_MAX:5}
+        refillRatePerSec: ${RL_API_TOKEN_REFILL:0.05}
       upload:
-        maxTokens: 3
-        refillRatePerSec: 0.01
+        maxTokens: ${RL_API_UPLOAD_MAX:3}
+        refillRatePerSec: ${RL_API_UPLOAD_REFILL:0.01}
       write:
-        maxTokens: 10
-        refillRatePerSec: 1
+        maxTokens: ${RL_API_WRITE_MAX:10}
+        refillRatePerSec: ${RL_API_WRITE_REFILL:1}
       delete:
-        maxTokens: 5
-        refillRatePerSec: 0.1
+        maxTokens: ${RL_API_DELETE_MAX:5}
+        refillRatePerSec: ${RL_API_DELETE_REFILL:0.1}
       read:
-        maxTokens: 30
-        refillRatePerSec: 1
+        maxTokens: ${RL_API_READ_MAX:30}
+        refillRatePerSec: ${RL_API_READ_REFILL:1}
       scroll:
-        maxTokens: 60
-        refillRatePerSec: 2
+        maxTokens: ${RL_API_SCROLL_MAX:60}
+        refillRatePerSec: ${RL_API_SCROLL_REFILL:2}
     ws:
       comment:
-        maxTokens: 20
-        refillRatePerSec: 2
+        maxTokens: ${RL_WS_COMMENT_MAX:20}
+        refillRatePerSec: ${RL_WS_COMMENT_REFILL:2}
       like:
-        maxTokens: 50
-        refillRatePerSec: 10
+        maxTokens: ${RL_WS_LIKE_MAX:50}
+        refillRatePerSec: ${RL_WS_LIKE_REFILL:10}
       save:
-        maxTokens: 10
-        refillRatePerSec: 2
+        maxTokens: ${RL_WS_SAVE_MAX:10}
+        refillRatePerSec: ${RL_WS_SAVE_REFILL:2}
       follow:
-        maxTokens: 5
-        refillRatePerSec: 0.5
+        maxTokens: ${RL_WS_FOLLOW_MAX:5}
+        refillRatePerSec: ${RL_WS_FOLLOW_REFILL:0.5}
       session:
-        maxTokens: 20
-        refillRatePerSec: 1
+        maxTokens: ${RL_WS_SESSION_MAX:20}
+        refillRatePerSec: ${RL_WS_SESSION_REFILL:1}
