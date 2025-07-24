@@ -24,7 +24,7 @@ public class RateLimitFilter implements Filter {
     @Autowired private RateLimitConfig rateLimitConfig;
 
     private static final Set<String> EXCLUDED_PATHS = Set.of(
-        "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password"
+        "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/health/check"
     );
 
     @Override
