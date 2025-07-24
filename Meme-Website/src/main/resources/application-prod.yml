@@ -1,0 +1,95 @@
+spring:
+    application:
+        name: Meme-Website
+    data:
+        redis:
+            host: redis-18758.c264.ap-south-1-1.ec2.redns.redis-cloud.com
+            port: 18758
+            password: 9PN6MFoAcyDv7Nigh5MkrKLmTNfMQUB1
+        mongodb:
+            uri: mongodb+srv://softwaredev1112:gMc6fdJhLD2PEKUp@meme-website.i3lry.mongodb.net/?retryWrites=true&w=majority&appName=Meme-Website
+            database: Meme-Website
+            auto-index-creation: true
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: softwaredev1112@gmail.com
+        password: qbvu ustb zrjy vzki
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                        requeired : true
+
+    servlet:
+        multipart:
+            max-file-size: 15MB
+            max-request-size: 15MB
+
+server:
+    port: 8080
+
+logging:
+    level:
+        root: INFO
+
+jwt:
+    secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+
+frontend:
+    # url: https://meme-vault-ten.vercel.app/
+    url: http://localhost:5173
+    websocket:
+        # url: https://meme-vault-ten.vercel.app
+        url: http://localhost:5173
+
+aws:
+    region: ap-south-1
+    s3:
+        bucket: meme-vault-media-bucket
+    credentials:
+        access-key: AKIAR2QZPLKPBQQYT6AV
+        secret-key: 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
+
+rate-limiting:
+  limits:
+    api:
+      auth:
+        maxTokens: 10
+        refillRatePerSec: 0.1
+      token:
+        maxTokens: 5
+        refillRatePerSec: 0.05
+      upload:
+        maxTokens: 3
+        refillRatePerSec: 0.01
+      write:
+        maxTokens: 10
+        refillRatePerSec: 1
+      delete:
+        maxTokens: 5
+        refillRatePerSec: 0.1
+      read:
+        maxTokens: 30
+        refillRatePerSec: 1
+      scroll:
+        maxTokens: 60
+        refillRatePerSec: 2
+    ws:
+      comment:
+        maxTokens: 20
+        refillRatePerSec: 2
+      like:
+        maxTokens: 50
+        refillRatePerSec: 10
+      save:
+        maxTokens: 10
+        refillRatePerSec: 2
+      follow:
+        maxTokens: 5
+        refillRatePerSec: 0.5
+      session:
+        maxTokens: 20
+        refillRatePerSec: 1
