@@ -1,0 +1,6 @@
+spring:
+    application:
+        name: Meme-Website
+
+    profiles:
+        active: dev

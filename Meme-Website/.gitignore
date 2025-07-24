@@ -52,7 +52,7 @@ HELP.md
 
 # Ignore application properties with secrets
 application-prod.yml
-application.yml
+application-dev.yml
 .env
 config/
 secrets/
