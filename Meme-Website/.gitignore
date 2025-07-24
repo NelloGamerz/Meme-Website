@@ -51,7 +51,7 @@ HELP.md
 .vscode/
 
 # Ignore application properties with secrets
-application-dev.yml
+application-prod.yml
 application.yml
 .env
 config/
