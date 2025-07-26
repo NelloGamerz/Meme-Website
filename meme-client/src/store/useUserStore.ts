@@ -50,6 +50,7 @@ const getCurrentAuthUser = (): {
   profilePicture?: string;
   profileBanner?: string;
   name?: string;
+  theme?: string;
 } => {
   try {
     const { useAuthStore } = require("./useAuthStore");
@@ -60,6 +61,7 @@ const getCurrentAuthUser = (): {
         username: authUser.username,
         profilePicture: authUser.profilePicture,
         name: authUser.name,
+        theme: authUser.theme,
       };
     }
   } catch (error) {
@@ -153,6 +155,7 @@ interface UserActions {
     profilePicture?: string;
     profileBanner?: string;
     name?: string;
+    theme?: string;
   };
 
   handleFollowToggle: (isFollowing: boolean) => Promise<void>;
@@ -378,7 +381,36 @@ const useRawUserStore = create<UserStore>()(
 
         if (cachedProfile && now - cachedProfile.timestamp < 5 * 60 * 1000) {
           set((state) => {
+            // Create a basic UserProfile from cached data
+            const basicUserProfile: UserProfile = {
+              userId: cachedProfile.profile.userId,
+              username: cachedProfile.profile.username,
+              profilePictureUrl: cachedProfile.profile.profilePictureUrl,
+              profileBannerUrl: cachedProfile.profile.profileBannerUrl,
+              followersCount: cachedProfile.profile.followersCount,
+              followingCount: cachedProfile.profile.followingCount,
+              userCreated: cachedProfile.profile.userCreated,
+              followers: [],
+              following: [],
+              likedMemes: [],
+              savedMemes: [],
+              memeList: [],
+              followed: cachedProfile.profile.followed,
+              followback: cachedProfile.profile.followback,
+              isOwnProfile: cachedProfile.profile.isOwnProfile,
+            };
+
+            // Always set viewedUserProfile from cached data
+            state.viewedUserProfile = basicUserProfile;
+            state.viewedUserProfilePictureUrl = cachedProfile.profile.profilePictureUrl;
+            state.viewedUserProfileBannerUrl = cachedProfile.profile.profileBannerUrl;
+            state.viewedUserName = cachedProfile.profile.username;
+            state.viewedUserCreated = cachedProfile.profile.userCreated;
+            state.viewedUserFollowersCount = cachedProfile.profile.followersCount;
+            state.viewedUserFollowingCount = cachedProfile.profile.followingCount;
+
             if (isLoggedInUser) {
+              state.loggedInUserProfile = basicUserProfile;
               state.isLoggedInUserProfileLoaded = true;
               state.loggedInUserProfilePictureUrl =
                 cachedProfile.profile.profilePictureUrl;
@@ -415,6 +447,21 @@ const useRawUserStore = create<UserStore>()(
                       ) || [];
 
                     state.loggedInUserMemeList = mappedMemeList;
+
+                    // Also update viewedUserProfile with complete data
+                    if (state.viewedUserProfile) {
+                      state.viewedUserProfile.followers = response.data.followers || [];
+                      state.viewedUserProfile.following = response.data.following || [];
+                      state.viewedUserProfile.likedMemes = response.data.likedMemes || [];
+                      state.viewedUserProfile.savedMemes = response.data.savedMemes || [];
+                      state.viewedUserProfile.memeList = mappedMemeList;
+                    }
+                    state.viewedUserFollowers = response.data.followers || [];
+                    state.viewedUserFollowing = response.data.following || [];
+                    state.viewedUserLikedMemes = response.data.likedMemes || [];
+                    state.viewedUserSavedMemes = response.data.savedMemes || [];
+                    state.viewedUserMemeList = mappedMemeList;
+
                     state.isLoading = false;
                   });
                 })
@@ -555,6 +602,20 @@ const useRawUserStore = create<UserStore>()(
             timestamp: now,
           };
 
+          // Always set viewedUserProfile regardless of whether it's own profile or not
+          state.viewedUserProfile = userProfile;
+          state.viewedUserProfilePictureUrl = userProfile.profilePictureUrl;
+          state.viewedUserProfileBannerUrl = userProfile.profileBannerUrl;
+          state.viewedUserName = userProfile.username;
+          state.viewedUserCreated = userProfile.userCreated;
+          state.viewedUserFollowersCount = userProfile.followersCount;
+          state.viewedUserFollowingCount = userProfile.followingCount;
+          state.viewedUserFollowers = userProfile.followers;
+          state.viewedUserFollowing = userProfile.following;
+          state.viewedUserLikedMemes = userProfile.likedMemes;
+          state.viewedUserSavedMemes = userProfile.savedMemes;
+          state.viewedUserMemeList = userProfile.memeList;
+
           if (isLoggedInUser) {
             state.loggedInUserProfile = userProfile;
             state.isLoggedInUserProfileLoaded = true;
@@ -570,19 +631,6 @@ const useRawUserStore = create<UserStore>()(
             state.loggedInUserSavedMemes = userProfile.savedMemes;
             state.loggedInUserMemeList = userProfile.memeList;
           } else {
-            state.viewedUserProfile = userProfile;
-            state.viewedUserProfilePictureUrl = userProfile.profilePictureUrl;
-            state.viewedUserProfileBannerUrl = userProfile.profileBannerUrl;
-            state.viewedUserName = userProfile.username;
-            state.viewedUserCreated = userProfile.userCreated;
-            state.viewedUserFollowersCount = userProfile.followersCount;
-            state.viewedUserFollowingCount = userProfile.followingCount;
-            state.viewedUserFollowers = userProfile.followers;
-            state.viewedUserFollowing = userProfile.following;
-            state.viewedUserLikedMemes = userProfile.likedMemes;
-            state.viewedUserSavedMemes = userProfile.savedMemes;
-            state.viewedUserMemeList = userProfile.memeList;
-
             const loggedInUser = getCurrentAuthUser();
             if (userProfile.followed !== undefined) {
               state.isFollowingViewedUser = userProfile.followed;

@@ -146,7 +146,6 @@ public class CloudService {
                 deleteFromS3ByPublicUrl(oldPic);
             }
             profileBuffer.bufferProfilePicture(userId, req.getProfilePictureUrl());
-            // profileBuffer.markUserIdForPropagation(userId);
         }
 
         if (req.getProfileBannerUrl() != null && !req.getProfileBannerUrl().isBlank()) {

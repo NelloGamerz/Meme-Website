@@ -7,7 +7,15 @@ import { useNotificationStore } from '../../store/useNotificationStore';
 import { useUserStore } from '../../store/useUserStore';
 import api from '../../hooks/api';
 import { Notification } from '../../types/mems';
-import { getCurrentUser } from '../../utils/localStorageCache';
+import { getCurrentAuthUser } from '../../utils/authHelpers';
+
+const getCurrentUser = () => {
+  const authUser = getCurrentAuthUser();
+  return authUser ? { 
+    userId: authUser.userId || '', 
+    username: authUser.username || '' 
+  } : { userId: '', username: '' };
+};
 
 export const NotificationsList: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +24,8 @@ export const NotificationsList: React.FC = () => {
   const error = useNotificationStore.use.error();
   const getNotifications = useNotificationStore.use.getNotifications();
   const addNotification = useNotificationStore.use.addNotification();
+  const markAsRead = useNotificationStore.use.markAsRead();
+  const markAllAsRead = useNotificationStore.use.markAllAsRead();
   const userName = useUserStore.use.userName();
 
   useEffect(() => {
@@ -32,14 +42,7 @@ export const NotificationsList: React.FC = () => {
           const unreadNotifications = notifications.filter(n => !n.read);
           
           if (unreadNotifications.length > 0) {
-            await api.post(`/notifications/${userName}/mark-multiple-read`, {
-              notificationIds: unreadNotifications.map(n => n.id)
-            });
-            const updatedNotifications = notifications.map(n => 
-              !n.read ? { ...n, read: true, isRead: true } : n
-            );
-            
-            useNotificationStore.setState({ notifications: updatedNotifications });
+            await markAllAsRead();
             
             try {
               const notificationEvent = new CustomEvent('notifications-read', { 
@@ -55,7 +58,7 @@ export const NotificationsList: React.FC = () => {
     };
 
     markUnreadNotificationsAsRead();
-  }, [notifications, userName]);
+  }, [notifications, userName, markAllAsRead]);
 
   useEffect(() => {
     interface WebSocketNotificationData {
@@ -130,13 +133,12 @@ export const NotificationsList: React.FC = () => {
     }
   }, [addNotification]);
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = async (notification: Notification) => {
     try {
-      const updatedNotifications = notifications.map(n => 
-        n.id === notification.id ? { ...n, read: true, isRead: true } : n
-      );
-      
-      useNotificationStore.setState({ notifications: updatedNotifications });
+      // Mark as read using the store's markAsRead function
+      if (!notification.read && !notification.isRead) {
+        await markAsRead(notification.id);
+      }
       
       switch (notification.type) {
         case 'FOLLOW':
@@ -151,6 +153,7 @@ export const NotificationsList: React.FC = () => {
           break;
       }
     } catch (error) {
+      console.error('Failed to mark notification as read:', error);
     }
   };
 
@@ -232,13 +235,18 @@ export const NotificationsList: React.FC = () => {
                 <div className="flex items-start space-x-4">
                   <div 
                     className="relative flex-shrink-0"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
-                      const updatedNotifications = notifications.map(n => 
-                        n.id === notification.id ? { ...n, read: true, isRead: true } : n
-                      );
-                      useNotificationStore.setState({ notifications: updatedNotifications });
-                      navigate(`/profile/${notification.senderUsername}`);
+                      try {
+                        // Mark as read using the store's markAsRead function
+                        if (!notification.read && !notification.isRead) {
+                          await markAsRead(notification.id);
+                        }
+                        navigate(`/profile/${notification.senderUsername}`);
+                      } catch (error) {
+                        console.error('Failed to mark notification as read:', error);
+                        navigate(`/profile/${notification.senderUsername}`);
+                      }
                     }}
                     style={{ cursor: 'pointer' }}
                   >
@@ -290,6 +298,7 @@ export const NotificationPanel: React.FC = () => {
   const navigate = useNavigate();
   const userName = useUserStore.use.userName();
   const notifications = useNotificationStore.use.notifications();
+  const markAllAsRead = useNotificationStore.use.markAllAsRead();
 
   const handleClick = async () => {
     if (userName) {
@@ -297,14 +306,7 @@ export const NotificationPanel: React.FC = () => {
         const unreadNotifications = notifications.filter(n => !n.read);
         
         if (unreadNotifications.length > 0) {
-          await api.post(`/notifications/${userName}/mark-multiple-read`, {
-            notificationIds: unreadNotifications.map(n => n.id)
-          });
-          const updatedNotifications = notifications.map(n => 
-            !n.read ? { ...n, read: true, isRead: true } : n
-          );
-          
-          useNotificationStore.setState({ notifications: updatedNotifications });
+          await markAllAsRead();
           
           try {
             const notificationEvent = new CustomEvent('notifications-read', { 
@@ -315,9 +317,9 @@ export const NotificationPanel: React.FC = () => {
           }
         }
         
-        navigate(`/notifications/${userName}`);
+        navigate(`/notifications`);
       } catch (error) {
-        navigate(`/notifications/${userName}`);
+        navigate(`/notifications`);
       }
     }
   };

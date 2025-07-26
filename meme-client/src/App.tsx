@@ -13,6 +13,7 @@ import { CreatePage } from './pages/CreatePage';
 import { UploadMemePage } from './pages/UploadMemePage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { getCurrentTheme } from './utils/authHelpers';
 import { WebSocketManager } from './components/websocket/WebSocketManager';
 import { UserProfileInitializer } from './components/auth/UserProfileInitializer';
 import { ThemeProvider } from './context/ThemeProvider';
@@ -61,7 +62,7 @@ function App() {
     if (isLightOnly) {
       htmlEl.classList.add('light');
     } else {
-      const savedTheme = localStorage.getItem('theme');
+      const savedTheme = getCurrentTheme();
 
       if (savedTheme === 'system' || !savedTheme) {
         htmlEl.classList.add('system');
@@ -122,7 +123,7 @@ function App() {
           }
         />
         <Route
-          path="/notifications/:username"
+          path="/notifications"
           element={
             <ProtectedLayout>
               <NotificationsPage />

@@ -21,8 +21,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const { username } = useParams<{ username: string }>();
   const [followersLoading, setFollowersLoading] = useState(false);
   
-  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const isOwnProfile = loggedInUser.username === username;
+  const viewedUserProfile = useUserStore.use.viewedUserProfile();
+  const isOwnProfile = viewedUserProfile?.isOwnProfile ?? false;
 
   const loggedInUserProfilePictureUrl = useUserStore.use.loggedInUserProfilePictureUrl();
   const loggedInUserProfileBannerUrl = useUserStore.use.loggedInUserProfileBannerUrl();
@@ -37,10 +37,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const viewedUserFollowersCount = useUserStore.use.viewedUserFollowersCount();
   const viewedUserFollowingCount = useUserStore.use.viewedUserFollowingCount();
   const viewedUserFollowers = useUserStore.use.viewedUserFollowers();
-  const viewedUserProfile = useUserStore.use.viewedUserProfile();
   const isFollowingViewedUser = useUserStore.use.isFollowingViewedUser();
   
   const updateViewedProfileFollowState = useUserStore.use.updateViewedProfileFollowState();
+  const getLoggedInUser = useUserStore.use.getLoggedInUser();
   
   const memeList = useMemeContentStore.use.memeList();
   
@@ -57,6 +57,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const [isViewedProfileFollowingUserState, setIsViewedProfileFollowingUserState] = useState(false);
   
   useEffect(() => {
+    const loggedInUser = getLoggedInUser();
+    
     const checkIsFollowing = () => {
       if (!username || isOwnProfile || !Array.isArray(viewedUserFollowers)) return false;
       return viewedUserFollowers.some((follower) => follower.userId === loggedInUser.userId);
@@ -72,7 +74,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     
     setIsUserFollowingState(checkIsFollowing());
     setIsViewedProfileFollowingUserState(checkIsFollowedBy());
-  }, [username, isOwnProfile, viewedUserFollowers, loggedInUserFollowers, loggedInUser.userId]);
+  }, [username, isOwnProfile, viewedUserFollowers, loggedInUserFollowers, getLoggedInUser]);
   
   const isUserFollowing = () => isUserFollowingState || isFollowingViewedUser;
   const isViewedProfileFollowingUser = () => isViewedProfileFollowingUserState;

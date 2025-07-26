@@ -3,16 +3,21 @@ import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { Lock, Check, X, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "../hooks/useAuth"
+import { getCurrentTheme } from "../utils/authHelpers"
 
 const PasswordResetPage: React.FC = () => {
   useEffect(() => {
-    const originalTheme = localStorage.getItem("theme");
+    const originalTheme = getCurrentTheme();
+    
+    // Force light theme for auth pages without updating global context
     document.documentElement.classList.remove("dark", "system");
     document.documentElement.classList.add("light");
     
     return () => {
+      // Restore original theme classes without updating global context
       if (originalTheme) {
-        localStorage.setItem("theme", originalTheme);
+        document.documentElement.classList.remove("light", "dark", "system");
+        document.documentElement.classList.add(originalTheme);
       }
     };
   }, []);

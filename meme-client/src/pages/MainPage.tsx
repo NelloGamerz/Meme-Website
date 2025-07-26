@@ -258,9 +258,7 @@ export const MainPage: React.FC = () => {
               <button
                 data-notification-bell
                 onClick={() => {
-                  if (userName) {
-                    navigate(`/notifications/${userName}`);
-                  }
+                  navigate(`/notifications`);
                 }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-all duration-200 transform hover:scale-105"
               >

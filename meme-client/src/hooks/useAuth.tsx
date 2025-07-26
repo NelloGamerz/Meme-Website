@@ -58,6 +58,7 @@ export const useAuthCheck = () => {
     isLoading: isLoading || !isInitialized,
     username: user?.username || null,
     userId: user?.userId || null,
+    theme: user?.theme || 'light',
     refreshAuth: checkAuth
   }
 }

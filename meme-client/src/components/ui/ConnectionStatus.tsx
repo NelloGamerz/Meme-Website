@@ -17,11 +17,9 @@ export const ConnectionStatus: React.FC = memo(() => {
 
   const checkAndReconnect = () => {
     try {
-      // Check current connection state
       const currentState = WebSocketService.getConnectionState();
 
       if (currentState !== "CONNECTED") {
-        // Use the WebSocket connection store to handle reconnection
         const { connectWebSocket } = useWebSocketConnectionStore.getState() as {
           connectWebSocket: () => void;
         };
@@ -44,17 +42,12 @@ export const ConnectionStatus: React.FC = memo(() => {
   };
 
   useEffect(() => {
-    // Set initial state
     setIsConnected(WebSocketService.isConnected());
 
-    // Listen to connection state changes
     const unsubscribe = WebSocketService.registerConnectionStateListener(
       (state) => {
         const connected = state === "CONNECTED";
         setIsConnected(connected);
-
-        // Log state changes for debugging
-        console.log(`WebSocket connection state changed: ${state}`);
       }
     );
 
@@ -64,7 +57,6 @@ export const ConnectionStatus: React.FC = memo(() => {
   }, []);
 
   useEffect(() => {
-    // Clear existing timers
     const clearTimers = () => {
       if (timersRef.current.fadeTimer) {
         clearTimeout(timersRef.current.fadeTimer);
@@ -79,30 +71,24 @@ export const ConnectionStatus: React.FC = memo(() => {
     clearTimers();
 
     if (!isConnected) {
-      // Show disconnected status immediately and keep it visible
       setShowStatus(true);
       setFadeOut(false);
     } else {
-      // Show connected status briefly, then fade out
       setShowStatus(true);
       setFadeOut(false);
 
-      // Start fade out after 3 seconds
       timersRef.current.fadeTimer = setTimeout(() => {
         setFadeOut(true);
 
-        // Hide completely after fade animation (1 second)
         timersRef.current.hideTimer = setTimeout(() => {
           setShowStatus(false);
         }, 1000);
       }, 3000);
     }
 
-    // Cleanup function
     return clearTimers;
   }, [isConnected]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timersRef.current.fadeTimer) {

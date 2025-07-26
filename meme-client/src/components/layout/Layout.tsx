@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { BottomNavigation } from "./BottomNavigation";
 // import { ConnectionStatus } from "../ui/ConnectionStatus";
-import { useTheme } from "../../context/ThemeProvider";
+import { useSettings } from "../../hooks/useSettings";
 import { useAuthContext } from "../../hooks/useAuthContext";
 
 interface LayoutProps {
@@ -15,7 +15,7 @@ export const Layout: React.FC<LayoutProps> = memo(({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
-  const { theme } = useTheme();
+  const { theme } = useSettings();
   const { isAuthenticated } = useAuthContext();
 
   const isMemeDetailPage = pathname.startsWith('/meme/');

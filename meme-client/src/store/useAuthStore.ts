@@ -12,6 +12,7 @@ interface AuthUser {
   email?: string;
   profilePicture?: string;
   name?: string;
+  theme?: string;
 }
 
 interface AuthState {
@@ -34,6 +35,7 @@ interface AuthActions {
   getCurrentUser: () => AuthUser | null;
   getUserId: () => string;
   getUsername: () => string;
+  getTheme: () => string;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -63,6 +65,7 @@ const useRawAuthStore = create<AuthStore>()(
           email: response.data.email,
           profilePicture: response.data.profilePicture,
           name: response.data.name,
+          theme: response.data.theme,
         };
 
         set((state) => {
@@ -76,6 +79,7 @@ const useRawAuthStore = create<AuthStore>()(
         updateGlobalAuthState({
           username: userData.username,
           userId: userData.userId,
+          theme: userData.theme ?? null,
           isAuthenticated: true
         });
 
@@ -108,6 +112,7 @@ const useRawAuthStore = create<AuthStore>()(
         updateGlobalAuthState({
           username: null,
           userId: null,
+          theme: null,
           isAuthenticated: false
         });
 
@@ -127,6 +132,7 @@ const useRawAuthStore = create<AuthStore>()(
       updateGlobalAuthState({
         username: user?.username || null,
         userId: user?.userId || null,
+        theme: user?.theme || null,
         isAuthenticated: !!user
       });
     },
@@ -161,6 +167,7 @@ const useRawAuthStore = create<AuthStore>()(
       updateGlobalAuthState({
         username: null,
         userId: null,
+        theme: null,
         isAuthenticated: false
       });
     },
@@ -181,6 +188,10 @@ const useRawAuthStore = create<AuthStore>()(
 
     getUsername: () => {
       return get().user?.username || "";
+    },
+
+    getTheme: () => {
+      return get().user?.theme || "";
     },
   }))
 );

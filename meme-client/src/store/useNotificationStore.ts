@@ -14,6 +14,7 @@ interface NotificationActions {
   getNotifications: (username: string) => void;
   addNotification: (notification: Partial<Notification>) => void;
   markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
   clearAllNotifications: (username: string) => Promise<void>;
 }
 
@@ -32,7 +33,7 @@ const useRawNotificationStore = create<NotificationStore>()(
           state.error = null;
         });
 
-        const response = await api.get(`/notifications/${username}`);
+        const response = await api.get(`/notifications`);
         
         const processedNotifications = response.data.map((notification: Notification) => ({
           ...notification,
@@ -45,7 +46,7 @@ const useRawNotificationStore = create<NotificationStore>()(
         });
       } catch (error) {
         set((state) => {
-          state.error = `Failed to fetch notifications for ${username}`;
+          state.error = `Failed to fetch notifications`;
           state.isLoading = false;
         });
       }
@@ -75,23 +76,42 @@ const useRawNotificationStore = create<NotificationStore>()(
 
     markAsRead: async (notificationId: string) => {
       try {
+        // Mark all notifications as read when clicking on any individual notification
         set((state) => {
-          state.notifications = state.notifications.map((notification: Notification) =>
-            notification.id === notificationId
-              ? { ...notification, isRead: true }
-              : notification
-          );
+          state.notifications = state.notifications.map((notification: Notification) => ({
+            ...notification,
+            isRead: true,
+            read: true
+          }));
         });
 
-        await api.put(`/notifications/${notificationId}/read`);
+        await api.post(`/notifications/readAll`);
       } catch (error) {
         set((state) => {
           state.notifications = state.notifications.map((notification: Notification) =>
             notification.id === notificationId
-              ? { ...notification, isRead: false }
+              ? { ...notification, isRead: false, read: false }
               : notification
           );
           state.error = `Failed to mark notification as read`;
+        });
+      }
+    },
+
+    markAllAsRead: async () => {
+      try {
+        set((state) => {
+          state.notifications = state.notifications.map((notification: Notification) => ({
+            ...notification,
+            isRead: true,
+            read: true
+          }));
+        });
+
+        await api.post(`/notifications/readAll`);
+      } catch (error) {
+        set((state) => {
+          state.error = `Failed to mark all notifications as read`;
         });
       }
     },

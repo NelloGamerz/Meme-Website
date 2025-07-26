@@ -21,7 +21,9 @@ import com.example.Meme.Website.dto.PasswordResetRequest;
 import com.example.Meme.Website.dto.RegisterResponse;
 import com.example.Meme.Website.models.userModel;
 import com.example.Meme.Website.repository.userRepository;
+import com.example.Meme.Website.repository.userSettingsRepository;
 import com.example.Meme.Website.services.AuthService;
+import com.example.Meme.Website.models.userSettings;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,7 +40,8 @@ public class AuthController {
 
     @Autowired
     private CookieUtil cookieUtil;
-
+    @Autowired
+    private userSettingsRepository userSettingsRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody userModel user, HttpServletResponse response) {
@@ -77,12 +80,35 @@ public class AuthController {
         return authService.resetPassword(request);
     }
 
+    // @GetMapping("/me")
+    // public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+    // String username =
+    // SecurityContextHolder.getContext().getAuthentication().getName();
+    // userModel user = userRepository.findByUsername(username)
+    // .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    // return ResponseEntity.ok(Map.of("username", user.getUsername(), "userId",
+    // user.getUserId()));
+    // }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
         userModel user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return ResponseEntity.ok(Map.of("username", user.getUsername(), "userId", user.getUserId()));
+
+        String userId = user.getUserId();
+
+        // Fetch theme from userSettings, default to "light" if not found
+        String theme = userSettingsRepository.findByUserId(userId)
+                .map(userSettings::getTheme)
+                .filter(t -> t != null && !t.isBlank())
+                .orElse("light");
+
+        return ResponseEntity.ok(Map.of(
+                "username", user.getUsername(),
+                "userId", userId,
+                "theme", theme));
     }
 
     @GetMapping("/check-username")

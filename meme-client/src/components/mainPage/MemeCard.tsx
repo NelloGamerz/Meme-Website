@@ -14,6 +14,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import DOMPurify from "dompurify";
 import useWebSocketStore from "../../hooks/useWebSockets.ts";
+import { getCurrentAuthUser } from "../../utils/authHelpers";
 
 interface MemeCardProps {
   meme: Meme;
@@ -37,7 +38,8 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const authUser = getCurrentAuthUser();
+  const user = authUser ? { username: authUser.username, userId: authUser.userId } : {};
   const videoRef = useRef<HTMLVideoElement>(null);
   const usernameRef = useRef<HTMLSpanElement>(null);
   const usernameContainerRef = useRef<HTMLDivElement>(null);

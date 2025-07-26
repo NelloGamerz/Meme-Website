@@ -2,7 +2,9 @@ package com.example.Meme.Website.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -156,13 +158,71 @@ public class RedisService {
     }
 
     public void pushMemeToCleanupQueue(String memeId) {
-    try {
-        String redisListKey = "memes:pending_cleanup"; // or any name you prefer
-        redisTemplate.opsForList().rightPush(redisListKey, memeId);
-        log.info("🧹 Meme '{}' pushed to cleanup queue '{}'", memeId, redisListKey);
-    } catch (Exception e) {
-        log.error("❌ Failed to push meme '{}' to cleanup queue: {}", memeId, e.getMessage());
+        try {
+            String redisListKey = "memes:pending_cleanup";
+            redisTemplate.opsForList().rightPush(redisListKey, memeId);
+            log.info("🧹 Meme '{}' pushed to cleanup queue '{}'", memeId, redisListKey);
+        } catch (Exception e) {
+            log.error("❌ Failed to push meme '{}' to cleanup queue: {}", memeId, e.getMessage());
+        }
     }
+
+    public String getStringValue(String key) {
+        try {
+            return redisTemplate.opsForValue().get(key).toString();
+        } catch (Exception e) {
+            log.error("Failed to fetch String value from redis.");
+            return null;
+        }
+    }
+
+    public void setStringValue(String key, String value, Long ttl) {
+        try {
+            redisTemplate.opsForValue().set(key, value, ttl, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("Failed to set String value in redis.");
+        }
+    }
+
+    public void pushAllToList(String key, List<String> values, long ttl) {
+        try {
+            if (values != null && !values.isEmpty()) {
+                redisTemplate.opsForList().rightPushAll(key, values);
+                redisTemplate.expire(key, ttl, TimeUnit.MINUTES);
+                log.info("✅ Pushed {} values to Redis list '{}' with TTL", values.size(), key);
+            }
+        } catch (Exception e) {
+            log.error("❌ Failed to push list to Redis: {}", e.getMessage());
+        }
+    }
+
+    public void putHashFields(String key, Map<String, String> fields) {
+        try {
+            redisTemplate.opsForHash().putAll(key, fields);
+        } catch (Exception e) {
+            log.error("❌ Failed to store fields in Redis hash '{}': {}", key, e.getMessage());
+        }
+    }
+
+    public String getHashFieldValue(String key, String field) {
+        try {
+            Object value = redisTemplate.opsForHash().get(key, field);
+            return value != null ? value.toString() : null;
+        } catch (Exception e) {
+            log.error("❌ Failed to get field '{}' from Redis hash '{}': {}", field, key, e.getMessage());
+            return null;
+        }
+    }
+
+    public Map<String, String> getAllHash(String key) {
+    Map<Object, Object> rawMap = redisTemplate.opsForHash().entries(key);
+    
+    return rawMap.entrySet()
+                 .stream()
+                 .collect(Collectors.toMap(
+                     e -> String.valueOf(e.getKey()),
+                     e -> String.valueOf(e.getValue())
+                 ));
 }
 
 

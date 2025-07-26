@@ -13,35 +13,34 @@
         try {
           document.documentElement.classList.remove('light', 'dark', 'system');
           
-          const savedTheme = localStorage.getItem('theme');
+          const savedTheme = window.__authState?.theme || 'light';
           
           if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
           } else if (savedTheme === 'light') {
             document.documentElement.classList.add('light');
-          } else if (savedTheme === 'system' || !savedTheme) {
+          } else if (savedTheme === 'system') {
             document.documentElement.classList.add('system');
             
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+          } else {
+            document.documentElement.classList.add('light');
           }
           
           window.__themeInitialized = true;
-          
-          window.addEventListener('storage', function(e) {
-            if (e.key === 'theme' || e.key === null) {
-              const newTheme = localStorage.getItem('theme');
-              if (newTheme) {
-                document.documentElement.classList.remove('light', 'dark', 'system');
-                
-                if (newTheme === 'system') {
-                  document.documentElement.classList.add('system');
-                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
-                } else {
-                  document.documentElement.classList.add(newTheme);
-                }
-                
+          window.addEventListener('auth-state-changed', function(e) {
+            const authState = e.detail;
+            if (authState && authState.user && authState.user.theme) {
+              const newTheme = authState.user.theme;
+              document.documentElement.classList.remove('light', 'dark', 'system');
+              
+              if (newTheme === 'system') {
+                document.documentElement.classList.add('system');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+              } else {
+                document.documentElement.classList.add(newTheme);
               }
             }
           });

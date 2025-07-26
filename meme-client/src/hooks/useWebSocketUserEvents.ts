@@ -1,13 +1,11 @@
 import { useEffect } from 'react';
 import { useWebSocketEvent } from '../services/WebSocketEventBus';
 import { WebSocketMessage } from '../services/WebSocketService';
+import { getCurrentAuthUser } from '../utils/authHelpers';
 
-const getUserFromLocalStorage = () => {
-  try {
-    return JSON.parse(localStorage.getItem('user') || '{}');
-  } catch (error) {
-    return { userId: '', username: '' };
-  }
+const getCurrentUser = () => {
+  const authUser = getCurrentAuthUser();
+  return authUser ? { userId: authUser.userId, username: authUser.username } : { userId: '', username: '' };
 };
 
 const getUserStore = async () => {
@@ -22,7 +20,7 @@ export const useWebSocketUserEvents = () => {
 export const useWebSocketFollowEvents = () => {
   useEffect(() => {
     const unsubscribe = useWebSocketEvent("FOLLOW", async (message: WebSocketMessage) => {
-      const currentUser = getUserFromLocalStorage();
+      const currentUser = getCurrentUser();
       const userStore = await getUserStore();
       const set = userStore.setState;
 

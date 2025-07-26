@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
+import { getCurrentTheme, updateGlobalAuthState, getCurrentAuthUser } from '../utils/authHelpers';
 
 type ThemeType = 'light' | 'dark' | 'system';
 
 export const useTheme = () => {
   const [theme, setTheme] = useState<ThemeType>(() => {
-    if (typeof localStorage !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme') as ThemeType;
-      return savedTheme || 'system';
+    const savedTheme = getCurrentTheme();
+    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+      return savedTheme as ThemeType;
     }
     return 'system';
   });
@@ -24,7 +25,17 @@ export const useTheme = () => {
 
   useEffect(() => {
     applyTheme(theme);
-    localStorage.setItem('theme', theme);
+    
+    // Update global auth state with new theme
+    const authUser = getCurrentAuthUser();
+    if (authUser) {
+      updateGlobalAuthState({
+        username: authUser.username,
+        userId: authUser.userId,
+        theme: theme,
+        isAuthenticated: authUser.isAuthenticated
+      });
+    }
 
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

@@ -29,7 +29,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     updateGlobalAuthState({
       username: authData.username,
       userId: authData.userId,
-      isAuthenticated: authData.isAuthenticated
+      isAuthenticated: authData.isAuthenticated,
+      theme: authData.theme
     })
     
     // Update the user store with auth data

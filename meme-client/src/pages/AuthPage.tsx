@@ -3,6 +3,7 @@ import { AuthTabs } from "../components/auth/AuthTabs";
 import { LoginForm } from "../components/auth/LoginForm";
 import { RegisterForm } from "../components/auth/RegisterForm";
 import { toast } from "react-hot-toast";
+import { getCurrentTheme } from "../utils/authHelpers";
 
 export const AuthPage: React.FC = () => {
   useEffect(() => {
@@ -11,6 +12,23 @@ export const AuthPage: React.FC = () => {
       localStorage.removeItem("sessionExpired");
     }
   }, []);
+
+  useEffect(() => {
+    const originalTheme = getCurrentTheme();
+    
+    // Force light theme for auth pages without updating global context
+    document.documentElement.classList.remove("dark", "system");
+    document.documentElement.classList.add("light");
+    
+    return () => {
+      // Restore original theme classes without updating global context
+      if (originalTheme) {
+        document.documentElement.classList.remove("light", "dark", "system");
+        document.documentElement.classList.add(originalTheme);
+      }
+    };
+  }, []);
+
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
   return (

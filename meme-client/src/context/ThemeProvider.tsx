@@ -6,6 +6,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import { getCurrentTheme, updateGlobalAuthState, getCurrentAuthUser } from "../utils/authHelpers";
 
 type ThemeType = "light" | "dark";
 
@@ -19,12 +20,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const getInitialTheme = (): ThemeType => {
   if (typeof window === "undefined") return "light";
 
-  try {
-    const savedTheme = localStorage.getItem("theme") as ThemeType;
-    if (savedTheme && ["light", "dark"].includes(savedTheme)) {
-      return savedTheme;
-    }
-  } catch (error) {}
+  const savedTheme = getCurrentTheme();
+  if (savedTheme && ["light", "dark"].includes(savedTheme)) {
+    return savedTheme as ThemeType;
+  }
 
   return "light";
 };
@@ -53,10 +52,18 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
     (newTheme: ThemeType) => {
       applyTheme(newTheme);
       setThemeState(newTheme);
-      try {
-        localStorage.setItem("theme", newTheme);
-        window.dispatchEvent(new Event("storage"));
-      } catch (error) {}
+      
+      // Update global auth state with new theme
+      const authUser = getCurrentAuthUser();
+      if (authUser) {
+        updateGlobalAuthState({
+          username: authUser.username,
+          userId: authUser.userId,
+          theme: newTheme,
+          isAuthenticated: authUser.isAuthenticated
+        });
+      }
+      
       setTimeout(() => {
         applyTheme(newTheme);
       }, 50);

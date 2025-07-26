@@ -51,6 +51,24 @@ export function getCurrentUser(): {
   email?: string;
   name?: string;
 } {
+  // Use global auth context instead of localStorage
+  try {
+    const { getCurrentAuthUser } = require('./authHelpers');
+    const authUser = getCurrentAuthUser();
+    
+    if (authUser && authUser.userId && authUser.username) {
+      return {
+        userId: authUser.userId,
+        username: authUser.username,
+        profilePicture: undefined, // These fields are not in global auth context
+        email: undefined,
+        name: undefined,
+      };
+    }
+  } catch (error) {
+    // Fallback to localStorage if auth helpers are not available
+  }
+  
   const user = getFromStorage<{
     userId: string;
     username: string;
