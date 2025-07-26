@@ -5,7 +5,6 @@ import { useWebSocketStore } from '../../hooks/useWebSockets';
 import { cn } from '../../hooks/utils';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { useUserStore } from '../../store/useUserStore';
-import api from '../../hooks/api';
 import { Notification } from '../../types/mems';
 import { getCurrentAuthUser } from '../../utils/authHelpers';
 

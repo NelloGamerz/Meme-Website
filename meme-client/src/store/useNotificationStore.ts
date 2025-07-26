@@ -26,7 +26,7 @@ const useRawNotificationStore = create<NotificationStore>()(
     isLoading: false,
     error: null,
 
-    getNotifications: async (username: string) => {
+    getNotifications: async () => {
       try {
         set((state) => {
           state.isLoading = true;
