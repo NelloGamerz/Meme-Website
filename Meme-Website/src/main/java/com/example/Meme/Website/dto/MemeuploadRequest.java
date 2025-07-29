@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemeuploadRequest {
-    private String uploader;
     private String profilePictureUrl;
     private String tempKey;
-    private String userId;
     private String title;
     private String category;
     private List<String> tags;

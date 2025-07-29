@@ -1,12 +1,13 @@
 package com.example.Meme.Website.controller;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,8 +19,8 @@ import com.example.Meme.Website.dto.MemeuploadRequest;
 import com.example.Meme.Website.dto.PresignRequest;
 import com.example.Meme.Website.dto.PresignResponse;
 import com.example.Meme.Website.dto.ProfileUpdateRequest;
+import com.example.Meme.Website.models.UserPrincipal;
 import com.example.Meme.Website.services.CloudService;
-import com.example.Meme.Website.services.ProfileService;
 import com.example.Meme.Website.services.S3PresignService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,8 +34,6 @@ public class CloudUpload {
 
     @Autowired
     private CloudService cloudService;
-    @Autowired
-    private ProfileService profileService;
 
     @PostMapping("/presign-temp")
     public ResponseEntity<List<PresignResponse>> presignTempUpload(@RequestBody BatchPresignRequest req) {
@@ -61,46 +60,29 @@ public class CloudUpload {
     }
 
     @PostMapping("/meme")
-    public ResponseEntity<String> finalizeUpload(@RequestBody MemeuploadRequest req) {
-        cloudService.finalizeMemeuplaod(req);
+    public ResponseEntity<String> finalizeUpload(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestBody MemeuploadRequest req) {
+        String username = user.getUsername();
+        String userId = user.getUserId();
+        cloudService.finalizeMemeuplaod(req, username, userId);
         return ResponseEntity.ok("Meme uploaded Successfully.");
     }
 
     @PatchMapping("/profile")
-    public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody ProfileUpdateRequest req,
-            HttpServletResponse response) {
-        Map<String, Object> result = new HashMap<>();
-        String username = req.getUsername();
-        String userId = req.getUserId();
+    public ResponseEntity<Map<String, Object>> updateProfile(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestBody ProfileUpdateRequest req,
+            HttpServletResponse res) {
 
-        if (username != null && !username.trim().isEmpty()) {
-            ResponseEntity<?> usernameResult = profileService.changeUsername(
-                    userId, Map.of("newUsername", username), response);
-
-            if (!usernameResult.getStatusCode().is2xxSuccessful()) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> errorBody = (Map<String, Object>) usernameResult.getBody();
-                return ResponseEntity.status(usernameResult.getStatusCode()).body(errorBody);
-            }
-
-            if (usernameResult.getBody() instanceof Map<?, ?>) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> usernameBody = (Map<String, Object>) usernameResult.getBody();
-                result.putAll(usernameBody);
-            }
+        try {
+            Map<String, Object> updatedData = cloudService.updateProfile(req, res, user.getUserId(),
+                    user.getUsername());
+            return ResponseEntity.ok(updatedData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Profile update failed", "error", e.getMessage()));
         }
-
-        if (req.getProfileBannerUrl() != null || req.getProfilePictureUrl() != null) {
-            cloudService.updateProfile(req, response);
-            if (req.getProfilePictureUrl() != null) {
-                result.put("profilePictureUrl", req.getProfilePictureUrl());
-            }
-            if (req.getProfileBannerUrl() != null) {
-                result.put("profileBannerUrl", req.getProfileBannerUrl());
-            }
-        }
-
-        return ResponseEntity.ok(result);
     }
 
 }

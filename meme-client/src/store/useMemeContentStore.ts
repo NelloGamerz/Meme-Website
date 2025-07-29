@@ -9,17 +9,13 @@ import type {
   UserApi,
   ApiSearchResult,
 } from "../types/mems";
-// import type { UserApi, SearchResult } from "../types/search";
 import { useWebSocketStore } from "../hooks/useWebSockets";
 import { mapApiMemeToMeme } from "../utils/memeMappers";
 import { getCurrentAuthUser } from "../utils/authHelpers";
 
-// Track the current meme being viewed
 let currentMemeId: string | null = null;
 
-// Define the store interface
 interface MemeContentState {
-  // Meme collections
   memes: Meme[];
   recomendedMemes: Meme[];
   memeList: Meme[];
@@ -27,25 +23,20 @@ interface MemeContentState {
   savedMemes: Meme[];
   selectedMeme: Meme | null;
 
-  // Search results
   searchUsers: UserApi[];
   searchMemes: Meme[];
 
-  // UI state
   isLoading: boolean;
   isLoadingMore: boolean;
   error: string | null;
   uploadProgress: number | null;
   searchQuery: string;
 
-  // Pagination state
   currentPage: number;
   hasMoreMemes: boolean;
 
-  // Cache state
   userDataLoaded: boolean;
 
-  // Profile tabs cache
   profileTabsCache: {
     [userId: string]: {
       [tabType: string]: {
@@ -68,7 +59,6 @@ interface MemeContentActions {
   fetchMoreMemes: () => Promise<void>;
   fetchRecomendedMemes: (
     memeId: string,
-    userId: string,
     page?: number,
     limit?: number
   ) => Promise<{
@@ -79,7 +69,6 @@ interface MemeContentActions {
   } | void>;
   searchMemesAndUsers: (query: string) => Promise<void>;
   discoverMemes: (
-    username?: string,
     page?: number,
     limit?: number
   ) => Promise<void>;
@@ -96,7 +85,6 @@ interface MemeContentActions {
     totalPages?: number;
   }>;
   fetchUserMemes: (
-    userId: string,
     offset?: number,
     limit?: number,
     type?: string
@@ -173,7 +161,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         set((state) => {
           state.isLoading = true;
           state.error = null;
-          state.currentPage = 1; // Reset pagination when fetching initial memes
+          state.currentPage = 1;
           state.hasMoreMemes = true;
         });
         const user = getCurrentAuthUser();
@@ -183,26 +171,20 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         let savedMemeIds: string[] = [];
 
         if (user && user.userId) {
-          // Fetch memes with the new response format
           const response = await api.get(`memes/feed/main`, {
             params: {
-              userId: user.userId,
               page: 1,
               limit: 10,
             },
           });
 
-          // The new response format has memes array and hasNextPage property
           if (
             response.data &&
             response.data.memes &&
             Array.isArray(response.data.memes)
           ) {
-            // Process each meme item which now includes liked and saved status
             memes = response.data.memes.map((item: any) => {
-              // Extract the meme data
               const apiMeme = item.meme;
-              // Create the meme object with liked and saved status
               const meme = mapApiMemeToMeme(
                 apiMeme,
                 false,
@@ -210,24 +192,20 @@ const useRawMemeContentStore = create<MemeContentStore>()(
                 item.saved
               );
 
-              // Track liked and saved status for collections
               if (item.liked) {
                 likedMemeIds.push(meme.id);
               }
               if (item.saved) {
                 savedMemeIds.push(meme.id);
               }
-
               return meme;
             });
 
-            // Check if there are potentially more memes to load
             set((state) => {
               state.hasMoreMemes = response.data.hasNextPage === true;
             });
           }
         } else {
-          // For non-logged in users, fetch trending memes
           const response = await api.get(
             "/memes/trending?excludeComments=true"
           );
@@ -238,9 +216,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           }
         }
 
-        // Update the store with the memes and their liked/saved status
         if (user && user.userId) {
-          // Create liked and saved meme arrays based on the IDs we collected
           const likedMemes = memes.filter((meme) =>
             likedMemeIds.includes(meme.id)
           );
@@ -303,13 +279,11 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         
         const response = await api.get(`memes/feed/main`, {
           params: {
-            userId: user.userId,
             page: nextPage,
             limit: 10,
           },
         });
 
-        // Process the new response format
         if (
           response.data &&
           response.data.memes &&
@@ -319,11 +293,8 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           let likedMemeIds: string[] = [];
           let savedMemeIds: string[] = [];
 
-          // Process each meme item which includes liked and saved status
           newMemes = response.data.memes.map((item: any) => {
-            // Extract the meme data
             const apiMeme = item.meme;
-            // Create the meme object with liked and saved status
             const meme = mapApiMemeToMeme(
               apiMeme,
               false,
@@ -331,7 +302,6 @@ const useRawMemeContentStore = create<MemeContentStore>()(
               item.saved
             );
 
-            // Track liked and saved status for collections
             if (item.liked) {
               likedMemeIds.push(meme.id);
             }
@@ -342,12 +312,9 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             return meme;
           });
 
-          // Update the store with the new memes and their liked/saved status
           set((state) => {
-            // Add new memes to the existing array
             state.memes = [...state.memes, ...newMemes];
 
-            // Update liked and saved memes
             const newLikedMemes = newMemes.filter((meme) =>
               likedMemeIds.includes(meme.id)
             );
@@ -379,7 +346,6 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
     fetchRecomendedMemes: async (
       memeId: string,
-      userId: String,
       page: number = 1,
       limit: number = 10
     ) => {
@@ -392,7 +358,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         });
 
         const response = await api.get(
-          `/memes/recomendedMemes/${memeId}/${userId}?page=${page}&limit=${limit}`
+          `/memes/recomendedMemes/${memeId}?page=${page}&limit=${limit}`
         );
 
         if (!response.data || !Array.isArray(response.data.memes)) {
@@ -492,12 +458,10 @@ const useRawMemeContentStore = create<MemeContentStore>()(
     },
 
     discoverMemes: async (
-      username?: string,
       page: number = 1,
       limit: number = 15
     ) => {
       try {
-        // Set loading state for initial load only
         set((state) => {
           if (page === 1) {
             state.isLoading = true;
@@ -506,17 +470,15 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           state.error = null;
         });
 
-        const user = getCurrentAuthUser();
+        // const user = getCurrentAuthUser();
 
         let memes: Meme[] = [];
         let likedMemeIds: string[] = [];
         let savedMemeIds: string[] = [];
 
-        const usernameToUse = username || user?.username || "";
 
         const response = await api.get(`memes/discover`, {
           params: {
-            username: usernameToUse,
             page,
             limit,
           },
@@ -648,7 +610,6 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         
         const response = await api.get(`memes/discover`, {
           params: {
-            username: user.username,
             page: nextPage,
             limit: 15,
           },
@@ -876,7 +837,6 @@ const useRawMemeContentStore = create<MemeContentStore>()(
     },
 
     fetchUserMemes: async (
-      userId: string,
       offset?: number,
       limit?: number,
       type?: string
@@ -888,72 +848,16 @@ const useRawMemeContentStore = create<MemeContentStore>()(
       const actualOffset = offset ?? 0;
       const actualLimit = limit ?? 10;
       const actualType = type ?? "UPLOAD";
+      
       try {
-        let apiCallNeeded = true;
-
-        const cachedResult = await new Promise((resolve) => {
-          set((state) => {
-            if (actualOffset === 0) {
-              state.isLoading = true;
-              state.error = null;
-            }
-
-            if (
-              state.profileTabsCache[userId] &&
-              state.profileTabsCache[userId][actualType]
-            ) {
-              const cache = state.profileTabsCache[userId][actualType];
-              const cacheAge = Date.now() - cache.timestamp;
-
-              if (cacheAge < 300000) {
-                if (actualOffset <= cache.offset) {
-                  const cachedMemes = JSON.parse(
-                    JSON.stringify(
-                      cache.memes.slice(0, actualOffset + actualLimit)
-                    )
-                  );
-
-                  if (actualType === "UPLOAD") {
-                    if (actualOffset === 0) {
-                      state.memeList = cachedMemes;
-                    }
-                  } else if (actualType === "LIKE") {
-                    if (actualOffset === 0) {
-                      state.likedMemes = cachedMemes;
-                    }
-                  } else if (actualType === "SAVE") {
-                    if (actualOffset === 0) {
-                      state.savedMemes = cachedMemes;
-                    }
-                  }
-
-                  state.isLoading = false;
-                  apiCallNeeded = false;
-
-                  resolve({
-                    memes: cachedMemes,
-                    hasMore: cache.hasMore,
-                    total: cache.total,
-                  });
-                  return;
-                }
-              }
-            }
-            resolve(null);
-          });
+        set((state) => {
+          if (actualOffset === 0) {
+            state.isLoading = true;
+            state.error = null;
+          }
         });
 
-        if (!apiCallNeeded && cachedResult) {
-          return cachedResult as {
-            memes: Meme[];
-            hasMore: boolean;
-            total: number;
-          };
-        } else if (!apiCallNeeded && !cachedResult) {
-          return { memes: [], hasMore: false, total: 0 };
-        }
-
-        const response = await api.get(`/profile/user-memes/${userId}/`, {
+        const response = await api.get(`/profile/user-memes`, {
           params: {
             offset: actualOffset,
             limit: actualLimit,
@@ -998,92 +902,50 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
         const memesCopy = JSON.parse(JSON.stringify(memes));
 
-        await new Promise<void>((resolve) => {
-          set((state) => {
-            try {
-              if (actualType === "UPLOAD") {
-                if (actualOffset === 0) {
-                  state.memeList = memesCopy;
-                } else {
-                  const existingIds = new Set(state.memeList.map((m) => m.id));
-                  const uniqueNewMemes = memesCopy.filter(
-                    (m: { id: string }) => !existingIds.has(m.id)
-                  );
-                  state.memeList = [...state.memeList, ...uniqueNewMemes];
-                }
-              } else if (actualType === "LIKE") {
-                if (actualOffset === 0) {
-                  state.likedMemes = memesCopy;
-                } else {
-                  const existingIds = new Set(
-                    state.likedMemes.map((m) => m.id)
-                  );
-                  const uniqueNewMemes = memesCopy.filter(
-                    (m: { id: string }) => !existingIds.has(m.id)
-                  );
-                  state.likedMemes = [...state.likedMemes, ...uniqueNewMemes];
-                }
-              } else if (actualType === "SAVE") {
-                if (actualOffset === 0) {
-                  state.savedMemes = memesCopy;
-                } else {
-                  const existingIds = new Set(
-                    state.savedMemes.map((m) => m.id)
-                  );
-                  const uniqueNewMemes = memesCopy.filter(
-                    (m: { id: string }) => !existingIds.has(m.id)
-                  );
-                  state.savedMemes = [...state.savedMemes, ...uniqueNewMemes];
-                }
-              }
-
-              if (!state.profileTabsCache[userId]) {
-                state.profileTabsCache[userId] = {};
-              }
-              if (
-                state.profileTabsCache[userId][actualType] &&
-                actualOffset > 0
-              ) {
-                const existingCache =
-                  state.profileTabsCache[userId][actualType];
-                const existingMemesCopy = JSON.parse(
-                  JSON.stringify(existingCache.memes)
+        set((state) => {
+          try {
+            if (actualType === "UPLOAD") {
+              if (actualOffset === 0) {
+                state.memeList = memesCopy;
+              } else {
+                const existingIds = new Set(state.memeList.map((m) => m.id));
+                const uniqueNewMemes = memesCopy.filter(
+                  (m: { id: string }) => !existingIds.has(m.id)
                 );
+                state.memeList = [...state.memeList, ...uniqueNewMemes];
+              }
+            } else if (actualType === "LIKE") {
+              if (actualOffset === 0) {
+                state.likedMemes = memesCopy;
+              } else {
                 const existingIds = new Set(
-                  existingMemesCopy.map((m: { id: any }) => m.id)
+                  state.likedMemes.map((m) => m.id)
                 );
                 const uniqueNewMemes = memesCopy.filter(
-                  (m: { id: unknown }) => !existingIds.has(m.id)
+                  (m: { id: string }) => !existingIds.has(m.id)
                 );
-
-                state.profileTabsCache[userId][actualType] = {
-                  memes: [...existingMemesCopy, ...uniqueNewMemes],
-                  hasMore,
-                  total,
-                  timestamp: Date.now(),
-                  offset: Math.max(
-                    existingCache.offset,
-                    actualOffset + memes.length
-                  ),
-                };
-              } else {
-                state.profileTabsCache[userId][actualType] = {
-                  memes: memesCopy,
-                  hasMore,
-                  total,
-                  timestamp: Date.now(),
-                  offset: actualOffset + memes.length,
-                };
+                state.likedMemes = [...state.likedMemes, ...uniqueNewMemes];
               }
-
-              state.isLoading = false;
-            } catch (err) {
-              console.error("Error updating state:", err);
-              state.isLoading = false;
-              state.error = "Error updating meme data";
+            } else if (actualType === "SAVE") {
+              if (actualOffset === 0) {
+                state.savedMemes = memesCopy;
+              } else {
+                const existingIds = new Set(
+                  state.savedMemes.map((m) => m.id)
+                );
+                const uniqueNewMemes = memesCopy.filter(
+                  (m: { id: string }) => !existingIds.has(m.id)
+                );
+                state.savedMemes = [...state.savedMemes, ...uniqueNewMemes];
+              }
             }
-            resolve();
-          });
+
+            state.isLoading = false;
+          } catch (err) {
+            console.error("Error updating state:", err);
+            state.isLoading = false;
+            state.error = "Error updating meme data";
+          }
         });
 
         return {
@@ -1093,11 +955,11 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         };
       } catch (error) {
         console.error(
-          `Error fetching memes for user ${userId}, type ${actualType}:`,
+          `Error fetching memes, type ${actualType}:`,
           error
         );
         set((state) => {
-          state.error = `Failed to fetch memes for user`;
+          state.error = `Failed to fetch memes`;
           state.isLoading = false;
         });
 

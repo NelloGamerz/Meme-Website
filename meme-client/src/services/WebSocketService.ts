@@ -143,7 +143,7 @@ class WebSocketService {
     try {
       this.updateConnectionState('CONNECTING');
       
-      const socket = new WebSocket(`${WS_URL}?userId=${userId}`);
+      const socket = new WebSocket(`${WS_URL}`);
       
       socket.onopen = this.handleOpen;
       socket.onclose = this.handleClose;

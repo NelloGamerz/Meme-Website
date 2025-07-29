@@ -1,6 +1,7 @@
 package com.example.Meme.Website.services;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.bson.types.ObjectId;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.Meme.Website.Exceptions.CustomExceptions;
 import com.example.Meme.Website.batch.InteractionBatchBuffer;
 import com.example.Meme.Website.batch.MemeBatchBuffer;
 import com.example.Meme.Website.batch.ProfilebatchBuffer;
@@ -19,7 +19,6 @@ import com.example.Meme.Website.dto.ProfileUpdateRequest;
 import com.example.Meme.Website.models.ActionType;
 import com.example.Meme.Website.models.Meme;
 import com.example.Meme.Website.models.UserInteraction;
-import com.example.Meme.Website.models.userModel;
 
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -29,7 +28,6 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 
-import com.example.Meme.Website.repository.userRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -39,8 +37,6 @@ public class CloudService {
 
     @Autowired
     private S3Client s3Client;
-    @Autowired
-    private userRepository userRepository;
     @Autowired
     private MemeBatchBuffer memeBuffer;
     @Autowired
@@ -55,9 +51,8 @@ public class CloudService {
     @Value("${aws.region}")
     private String region;
 
-    public void finalizeMemeuplaod(MemeuploadRequest req) {
+    public void finalizeMemeuplaod(MemeuploadRequest req, String username, String userId) {
         String tempKey = req.getTempKey();
-        String userId = req.getUserId();
         String fileName = tempKey.substring(tempKey.lastIndexOf("/") + 1);
         String finalKey = "memes/final/" + userId + "_" + fileName;
 
@@ -103,7 +98,7 @@ public class CloudService {
             Meme meme = new Meme();
             meme.setId(memeId);
             meme.setUserId(userId);
-            meme.setUploader(req.getUploader());
+            meme.setUploader(username);
             meme.setProfilePictureUrl(req.getProfilePictureUrl());
             meme.setCaption(req.getTitle());
             meme.setCategory(req.getCategory());
@@ -134,40 +129,37 @@ public class CloudService {
     }
 
     @Transactional
-    public void updateProfile(ProfileUpdateRequest req, HttpServletResponse httpResponse) {
-        userModel user = userRepository.findById(req.getUserId())
-                .orElseThrow(() -> new CustomExceptions.UserNotFoundException("User not found"));
+    public Map<String, Object> updateProfile(ProfileUpdateRequest req, HttpServletResponse httpResponse,
+            String userId, String username) {
 
-        String userId = req.getUserId();
+        Map<String, Object> result = new HashMap<>();
+        String newUsername = req.getNewUsername();
+        if (newUsername != null && !newUsername.isBlank() && !newUsername.equals(username)) {
+            Map<String, String> usernameUpdateMap = Map.of("newUsername", newUsername);
 
-        if (req.getProfilePictureUrl() != null && !req.getProfilePictureUrl().isBlank()) {
-            String oldPic = user.getProfilePictureUrl();
-            if (oldPic != null && oldPic.contains(".s3.")) {
-                deleteFromS3ByPublicUrl(oldPic);
+            ResponseEntity<?> usernameChangeResult = profileService.changeUsername(userId, usernameUpdateMap,
+                    httpResponse);
+            if (usernameChangeResult.getStatusCode().isError()) {
+                throw new RuntimeException("Username change failed: " + usernameChangeResult.getBody());
             }
-            profileBuffer.bufferProfilePicture(userId, req.getProfilePictureUrl());
+
+            result.put("newUsername", newUsername);
         }
 
-        if (req.getProfileBannerUrl() != null && !req.getProfileBannerUrl().isBlank()) {
-            String oldBanner = user.getProfileBannerUrl();
-            if (oldBanner != null && oldBanner.contains(".s3.")) {
-                deleteFromS3ByPublicUrl(oldBanner);
-            }
-            profileBuffer.bufferProfileBanner(userId, req.getProfileBannerUrl());
+        String profilePictureUrl = req.getProfilePictureUrl();
+        if (profilePictureUrl != null && !profilePictureUrl.isBlank()) {
+            profileBuffer.bufferProfilePicture(userId, profilePictureUrl);
+            result.put("profilePictureUrl", profilePictureUrl);
         }
 
-        if (req.getUsername() != null && !req.getUsername().isBlank()) {
-            if (!req.getUsername().equals(req.getPreviousUsername())) {
-                Map<String, String> usernameUpdateMap = Map.of("newUsername", req.getUsername());
-
-                ResponseEntity<?> usernameChangeResult = profileService.changeUsername(
-                        req.getUserId(), usernameUpdateMap, httpResponse);
-
-                if (usernameChangeResult.getStatusCode().isError()) {
-                    throw new RuntimeException("Username change failed: " + usernameChangeResult.getBody());
-                }
-            }
+        String profileBannerUrl = req.getProfileBannerUrl();
+        if (profileBannerUrl != null && !profileBannerUrl.isBlank()) {
+            profileBuffer.bufferProfileBanner(userId, profileBannerUrl);
+            result.put("profileBannerUrl", profileBannerUrl);
         }
+
+        return result;
+
     }
 
     public boolean deleteFromS3ByPublicUrl(String publicUrl) {

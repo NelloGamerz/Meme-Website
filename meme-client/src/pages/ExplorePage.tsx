@@ -75,7 +75,7 @@ export const ExplorePage = () => {
       setIsTyping(true);
 
       if (isAuthenticated && username) {
-        await discoverMemes(username, 1, 10);
+        await discoverMemes(1, 10);
       } else {
         await fetchMemes();
       }
@@ -125,7 +125,7 @@ export const ExplorePage = () => {
 
       const fetchPromise =
         isAuthenticated && username
-          ? discoverMemes(username, 1, 10)
+          ? discoverMemes(1, 10)
           : fetchMemes();
 
       const minDelay = new Promise((resolve) => setTimeout(resolve, 400));
@@ -169,7 +169,7 @@ export const ExplorePage = () => {
 
     const fetchPromise =
       isAuthenticated && username
-        ? discoverMemes(username, 1, 10)
+        ? discoverMemes(1, 10)
         : fetchMemes();
 
     const minDelay = new Promise((resolve) => setTimeout(resolve, 400));

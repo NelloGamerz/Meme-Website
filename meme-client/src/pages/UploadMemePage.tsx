@@ -30,8 +30,8 @@ interface MemeTag {
 }
 
 export const UploadMemePage: React.FC = () => {
-  const getLoggedInUser = useUserStore.use.getLoggedInUser();
-  const loggedInUser = getLoggedInUser();
+  // const getLoggedInUser = useUserStore.use.getLoggedInUser();
+  // const loggedInUser = getLoggedInUser();
 
   const [currentStep, setCurrentStep] = useState<UploadStep>("select");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -179,7 +179,6 @@ export const UploadMemePage: React.FC = () => {
     try {
       const formattedFilename = file.name.trim().replace(/\s+/g, "_").replace(/[^\w.-]/g, "");      
       const payload = {
-        userId: loggedInUser.userId,
         files: [
           {
             filename: formattedFilename,
@@ -279,7 +278,6 @@ export const UploadMemePage: React.FC = () => {
       }
 
       const payload = {
-        userId: loggedInUser.userId,
         files: [
           {
             filename: selectedFile.name.trim().replace(/\s+/g, "_").replace(/[^\w.-]/g, ""),
@@ -395,10 +393,8 @@ export const UploadMemePage: React.FC = () => {
       if (filterProcessResponse) {
         setUploadProgress(0);
         const memeUploadData = {
-          uploader: loggedInUser.username,
           profilePictureUrl: profilePictureUrl,
           tempKey: filterProcessResponse.tmepKey,
-          userId: loggedInUser.userId,
           title: title,
           category: selectedCategory.id,
           tags: tagStrings,

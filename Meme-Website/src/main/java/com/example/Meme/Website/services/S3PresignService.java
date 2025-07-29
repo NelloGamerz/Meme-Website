@@ -19,10 +19,10 @@ public class S3PresignService {
     @Autowired
     private S3Presigner s3Presigner;
 
-    @Value("${aws.credentials.access-key}")
-    private String accessKey;
-    @Value("${aws.credentials.secret-key}")
-    private String secretKey;
+    // @Value("${aws.credentials.access-key}")
+    // private String accessKey;
+    // @Value("${aws.credentials.secret-key}")
+    // private String secretKey;
     @Value("${aws.region}")
     private String region;
     @Value("${aws.s3.bucket}")

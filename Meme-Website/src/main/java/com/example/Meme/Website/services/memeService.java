@@ -298,16 +298,16 @@ public class memeService {
     }
 
     @Transactional
-    public Map<String, Object> getUserMemes(String username, ActionType type, int page, int limit) {
-        Optional<userModel> optionalUser = userRepository.findByUsername(username);
-        if (optionalUser.isEmpty()) {
-            return Map.of("error", "User not found");
-        }
+    public Map<String, Object> getUserMemes(String username, String userId, ActionType type, int page, int limit) {
+        // Optional<userModel> optionalUser = userRepository.findByUsername(username);
+        // if (optionalUser.isEmpty()) {
+        //     return Map.of("error", "User not found");
+        // }
 
-        userModel user = optionalUser.get();
+        // userModel user = optionalUser.get();
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "timestamp"));
 
-        Slice<UserInteraction> actionSlice = userInteractionRepository.findByUserIdAndType(user.getUserId(), type,
+        Slice<UserInteraction> actionSlice = userInteractionRepository.findByUserIdAndType(userId, type,
                 pageable);
         List<String> memeIds = actionSlice.getContent().stream()
                 .map(doc -> doc.getMemeId())

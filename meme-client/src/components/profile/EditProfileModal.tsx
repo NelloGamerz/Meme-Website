@@ -9,9 +9,11 @@ import { ImageEditorModal } from "./ImageEditorModal";
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (name: string) => Promise<void>;
-  onUpdateProfilePicture: (file: File) => Promise<void>;
-  onUpdateProfileBanner: (file: File) => Promise<void>;
+  onSave: (data: {
+    username?: string;
+    profilePicture?: File;
+    profileBanner?: File;
+  }) => Promise<void>;
   currentName: string;
   currentProfilePicture?: string;
   currentProfileBanner?: string;
@@ -21,8 +23,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  onUpdateProfilePicture,
-  onUpdateProfileBanner,
   currentName,
   currentProfilePicture,
   currentProfileBanner,
@@ -205,18 +205,35 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     setIsSaving(true);
     try {
-      await onSave(editName);
+      const updateData: {
+        username?: string;
+        profilePicture?: File;
+        profileBanner?: File;
+      } = {};
 
+      // Only include username if it has changed
+      if (editName !== currentName) {
+        updateData.username = editName;
+      }
+
+      // Include files if they were selected
       if (profilePictureFile) {
-        await onUpdateProfilePicture(profilePictureFile);
+        updateData.profilePicture = profilePictureFile;
       }
 
       if (profileBannerFile) {
-        await onUpdateProfileBanner(profileBannerFile);
+        updateData.profileBanner = profileBannerFile;
+      }
+
+      // Only call onSave if there are actual changes
+      if (Object.keys(updateData).length > 0) {
+        await onSave(updateData);
+        toast.success("Profile updated successfully!");
+      } else {
+        toast.success("No changes to save!");
       }
 
       onClose();
-      toast.success("Profile updated successfully!");
     } catch (error) {
       toast.error("Failed to update profile");
     } finally {

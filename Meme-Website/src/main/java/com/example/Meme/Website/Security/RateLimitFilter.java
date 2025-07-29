@@ -9,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.example.Meme.Website.config.RateLimitConfig;
 import com.example.Meme.Website.models.UserPrincipal;
 import com.example.Meme.Website.services.RateLimiterService;
 
@@ -21,7 +20,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class RateLimitFilter implements Filter {
 
     @Autowired private RateLimiterService rateLimiterService;
-    @Autowired private RateLimitConfig rateLimitConfig;
 
     private static final Set<String> EXCLUDED_PATHS = Set.of(
         "/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/health/check"

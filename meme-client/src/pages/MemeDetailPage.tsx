@@ -209,7 +209,7 @@ const MemeDetailPage: React.FC = () => {
     setIsLoadingMoreMemes(true);
 
     try {
-      const result = await fetchRecomendedMemes(id, authUserId || "", page);      
+      const result = await fetchRecomendedMemes(id, page);      
       if (!result || !result.memes || result.memes.length === 0) {
         setHasMoreMemes(false);
         setIsLoadingMoreMemes(false);
@@ -330,7 +330,7 @@ const MemeDetailPage: React.FC = () => {
           }
 
           if (isAuthenticated && authUserId && !isLoggedInUserProfileLoaded) {
-            await fetchUserProfile(authUsername || "");
+            await fetchUserProfile();
           } else if (isAuthenticated && authUserId && isLoggedInUserProfileLoaded) {
           }
         } finally {
@@ -683,7 +683,7 @@ const MemeDetailPage: React.FC = () => {
     navigate(`/profile/${username}`);
 
     if (username !== authUsername || !isLoggedInUserProfileLoaded) {
-      fetchUserProfile(username);
+      fetchUserProfile();
     }
   };
 

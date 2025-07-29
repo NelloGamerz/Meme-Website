@@ -80,16 +80,6 @@ public class AuthController {
         return authService.resetPassword(request);
     }
 
-    // @GetMapping("/me")
-    // public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
-    // String username =
-    // SecurityContextHolder.getContext().getAuthentication().getName();
-    // userModel user = userRepository.findByUsername(username)
-    // .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    // return ResponseEntity.ok(Map.of("username", user.getUsername(), "userId",
-    // user.getUserId()));
-    // }
-
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -99,7 +89,6 @@ public class AuthController {
 
         String userId = user.getUserId();
 
-        // Fetch theme from userSettings, default to "light" if not found
         String theme = userSettingsRepository.findByUserId(userId)
                 .map(userSettings::getTheme)
                 .filter(t -> t != null && !t.isBlank())

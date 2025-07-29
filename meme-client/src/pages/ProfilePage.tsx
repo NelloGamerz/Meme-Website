@@ -129,7 +129,7 @@ export const ProfilePage: React.FC = () => {
 
     profileLoadingInitiatedRef.current = true
     
-    fetchUserProfile(username).then(() => {
+    fetchUserProfile().then(() => {
       fetchMemesByTab(activeTab);
     });
 
@@ -190,7 +190,6 @@ export const ProfilePage: React.FC = () => {
       }
             
       const result = await useMemeContentStore.getState().fetchUserMemes(
-        userId,
         offsetValue,
         limit,
         type
@@ -230,43 +229,25 @@ export const ProfilePage: React.FC = () => {
     fetchMemesByTab(tab, 0, false);
   }
 
-  const handleProfilePictureUpload = async (file: File) => {
+  const handleUpdateProfile = async (data: {
+    username?: string;
+    profilePicture?: File;
+    profileBanner?: File;
+  }) => {
     try {
-      await updateUserProfile(loggedInUser.userId, { profilePicture: file });
-      fetchUserProfile(username || "");
-      toast.success("Profile picture updated successfully!");
-    } catch (error) {
-      toast.error("Failed to update profile picture");
-    }
-  }
-  
-  const handleProfileBannerUpload = async (file: File) => {
-    try {
-      await updateUserProfile(loggedInUser.userId, { profileBanner: file });
-      fetchUserProfile(username || "");
-      toast.success("Banner image updated successfully!");
-    } catch (error) {
-      toast.error("Failed to update banner image");
-    }
-  }
-
-  const handleUpdateProfile = async (name: string) => {
-    try {
-      if (name !== loggedInUserName) {
-        const oldUsername = loggedInUserName;        
-        await updateUserProfile(loggedInUser.userId, { username: name });
-        useUserStore.getState().invalidateProfileCache(oldUsername);
-        
-        navigate(`/profile/${name}`);
-        
-        setTimeout(() => {
-          fetchUserProfile(name);
-        }, 100);
-      }
-    } catch (error) {      
-      const errorMessage = (error as Error).message || useUserStore.getState().error || "Failed to update username";
-      toast.error(errorMessage);
+      const oldUsername = loggedInUserName;
       
+      await updateUserProfile(data);
+      
+      if (data.username && data.username !== oldUsername) {
+        useUserStore.getState().invalidateProfileCache(oldUsername);
+        navigate(`/profile/${data.username}`);
+      }
+      
+      toast.success("Profile updated successfully!");
+    } catch (error) {      
+      toast.error("Failed to update profile");
+      throw error;
     }
   }
 
@@ -283,7 +264,7 @@ export const ProfilePage: React.FC = () => {
         if (viewedUserProfile?.userId) {
           userId = viewedUserProfile.userId;
         } else if (username) {
-          await fetchUserProfile(username);
+          await fetchUserProfile();
           
           const updatedState = useUserStore.getState();
           userId = updatedState.viewedUserProfile?.userId;
@@ -298,7 +279,7 @@ export const ProfilePage: React.FC = () => {
       const existingFollowers = isOwnProfile ? loggedInUserFollowers : viewedUserFollowers;
       
       if (!existingFollowers || existingFollowers.length === 0) {        
-        const response = await fetchFollowData(userId, 'followers', 0, 50);
+        const response = await fetchFollowData('followers', 0, 50);
         
         if (response && response.followers && Array.isArray(response.followers)) {          
           useUserStore.setState(state => {
@@ -331,7 +312,7 @@ export const ProfilePage: React.FC = () => {
         if (viewedUserProfile?.userId) {
           userId = viewedUserProfile.userId;
         } else if (username) {
-          await fetchUserProfile(username);
+          await fetchUserProfile();
           const updatedState = useUserStore.getState();
           userId = updatedState.viewedUserProfile?.userId;
         }
@@ -345,9 +326,8 @@ export const ProfilePage: React.FC = () => {
       const existingFollowing = isOwnProfile ? loggedInUserFollowing : viewedUserFollowing;
       
       if (!existingFollowing || existingFollowing.length === 0) {
-        const response = await fetchFollowData(userId, 'following', 0, 50);
+        const response = await fetchFollowData('following', 0, 50);
         
-        // Check if the response has the expected structure
         if (response && response.following && Array.isArray(response.following)) {
           useUserStore.setState(state => {
             if (isOwnProfile) {
@@ -468,8 +448,6 @@ export const ProfilePage: React.FC = () => {
         isOpen={isEditProfileModalOpen}
         onClose={() => setIsEditProfileModalOpen(false)}
         onSave={handleUpdateProfile}
-        onUpdateProfilePicture={handleProfilePictureUpload}
-        onUpdateProfileBanner={handleProfileBannerUpload}
         currentName={loggedInUserName || ""}
         currentProfilePicture={loggedInUserProfilePictureUrl}
         currentProfileBanner={loggedInUserProfileBannerUrl}

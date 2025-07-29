@@ -10,7 +10,5 @@ import lombok.NoArgsConstructor;
 public class ProfileUpdateRequest {
     private String profilePictureUrl;
     private String profileBannerUrl;
-    private String username;
-    private String previousUsername;
-    private String userId;
+    private String newUsername;
 }

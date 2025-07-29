@@ -15,7 +15,7 @@ import com.example.Meme.Website.repository.memeRepository;
 @Service
 public class TrendingCacheService {
 
-    private static final long TRENDING_TTL_MINUTES = 1; // 10 minutes
+    private static final long TRENDING_TTL_MINUTES = 1;
     private static final String TRENDING_KEY = "trending:global";
     
     @Autowired

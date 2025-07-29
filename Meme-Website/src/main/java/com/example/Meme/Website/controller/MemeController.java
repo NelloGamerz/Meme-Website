@@ -3,10 +3,10 @@ package com.example.Meme.Website.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.Meme.Website.dto.MemeDto;
 import com.example.Meme.Website.dto.MemeFeedResponse;
 import com.example.Meme.Website.dto.SearchResult;
-import com.example.Meme.Website.models.ActionType;
 import com.example.Meme.Website.models.Meme;
+import com.example.Meme.Website.models.UserPrincipal;
 import com.example.Meme.Website.services.memeService;
 
 @RestController
@@ -28,19 +28,6 @@ public class MemeController {
     @Autowired
     private memeService memeService;
 
-    @GetMapping("/{username}")
-    public ResponseEntity<?> getUserMemes(
-            @PathVariable String username,
-            @RequestParam ActionType actionType,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit) {
-        try {
-            Map<String, Object> response = memeService.getUserMemes(username, actionType, page, limit);
-            return ResponseEntity.ok(response);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
-        }
-    }
 
     @GetMapping("/memepage/{id}")
     public ResponseEntity<MemeDto> getMemeById(
@@ -55,7 +42,6 @@ public class MemeController {
         return ResponseEntity.ok(memeDto);
     }
 
-    // using
     @GetMapping("/{id}/comments")
     public ResponseEntity<?> getMemeComments(
             @PathVariable String id,
@@ -82,14 +68,15 @@ public class MemeController {
     }
 
     // using
-    @GetMapping("/recomendedMemes/{memeId}/{userId}")
+    @GetMapping("/recomendedMemes/{memeId}")
     public ResponseEntity<Map<String, Object>> getRecomendedMemes(
             @PathVariable String memeId,
-            @PathVariable String userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @RequestParam(required = false, defaultValue = "999999") double lastScore,
             @RequestParam(required = false, defaultValue = "zzzzzzzzzz") String lastId,
             @RequestParam(defaultValue = "10") int limit) {
 
+                String userId = user.getUserId();
         List<Meme> relatedMeme = memeService.findRelatedMemes(memeId, userId, lastScore, lastId, limit);
 
         String newLastId = relatedMeme.isEmpty() ? null : relatedMeme.get(relatedMeme.size() - 1).getId();
@@ -105,11 +92,12 @@ public class MemeController {
     // using
     @GetMapping("/discover")
     public ResponseEntity<MemeFeedResponse> getDiscoveredMemes(
-            @RequestParam String username,
+            @AuthenticationPrincipal UserPrincipal user,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
 
         int zeroBasedPage = Math.max(0, page - 1);
+        String username = user.getUsername();
 
         MemeFeedResponse response = memeService.discoverMemes(username, zeroBasedPage, limit);
         return ResponseEntity.ok(response);
@@ -118,9 +106,10 @@ public class MemeController {
     // using
     @GetMapping("/feed/main")
     public ResponseEntity<MemeFeedResponse> getMainFeed(
-            @RequestParam(required = true) String userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
+                String userId = user.getUserId();
         MemeFeedResponse feed = memeService.buildMainFeed(userId, page, limit);
         return ResponseEntity.ok(feed);
     }
