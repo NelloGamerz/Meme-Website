@@ -683,7 +683,7 @@ const MemeDetailPage: React.FC = () => {
     navigate(`/profile/${username}`);
 
     if (username !== authUsername || !isLoggedInUserProfileLoaded) {
-      fetchUserProfile();
+      fetchUserProfile(username);
     }
   };
 

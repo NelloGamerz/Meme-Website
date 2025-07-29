@@ -198,14 +198,17 @@ public class ProfileService {
     }
 
     @Transactional
-    public ResponseEntity<?> getFollowData(String userId, int offset, int limit, String type) {
-        Optional<userModel> userOpt = userRepository.findById(userId);
+    public ResponseEntity<?> getFollowData(String username, int offset, int limit, String type) {
+        Optional<userModel> userOpt = userRepository.findByUsername(username);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of("error", "User not found!"));
         }
 
         Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "followDate"));
         Page<FollowersModel> followPage;
+
+        userModel user = userOpt.get();
+        String userId = user.getUserId();
 
         boolean isFollowers = type.equalsIgnoreCase("followers");
         if (isFollowers) {
@@ -321,7 +324,10 @@ public class ProfileService {
         return ResponseEntity.ok("Unfollowed successfully.");
     }
 
-    public ResponseEntity<?> getUserProfileMemes(String userId, int offset, int limit, String typeString) {
+    public ResponseEntity<?> getUserProfileMemes(String username, int offset, int limit, String typeString) {
+        Optional<userModel> userOpt = userRepository.findByUsername(username);
+        userModel user = userOpt.get();
+        String userId = user.getUserId();
         ActionType type;
         try {
             type = ActionType.valueOf(typeString.toUpperCase());

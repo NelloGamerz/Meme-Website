@@ -45,7 +45,7 @@ public class MemeCleanupService {
         if (memeIds.isEmpty()) return;
 
         try {
-            log.info("🧹 [ASYNC] Cleaning up memeIds: {}", memeIds);
+            log.info("[ASYNC] Cleaning up memeIds: {}", memeIds);
 
             commentRepository.deleteAllByMemeIdIn(memeIds);
             notificationRepository.deleteAllByMemeIdIn(memeIds);
@@ -54,8 +54,7 @@ public class MemeCleanupService {
             log.info("✅ Cleanup completed for memes: {}", memeIds);
 
         } catch (Exception e) {
-            log.error("❌ Cleanup error: {}", e.getMessage());
-            // Retry logic: push back to Redis
+            log.error("Cleanup error: {}", e.getMessage());
             memeIds.forEach(id -> redisTemplate.opsForList().rightPush(REDIS_KEY, id));
         }
     }

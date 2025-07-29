@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class Meme {
     @Id
     private String id;
-    private String UserId;
+    private String userId;
     private String mediaUrl;
     private String mediaType;
     private String caption;

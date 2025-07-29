@@ -28,7 +28,7 @@ export const UserProfileInitializer: React.FC = () => {
                             (Date.now() - cachedProfile.timestamp < 5 * 60 * 1000);
         
         if (!isLoggedInUserProfileLoaded && !isCacheValid) {
-          await fetchUserProfile();
+          await fetchUserProfile(username);
         }
       } catch (error) {
       }

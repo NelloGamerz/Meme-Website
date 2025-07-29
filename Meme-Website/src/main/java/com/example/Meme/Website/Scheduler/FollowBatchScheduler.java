@@ -40,7 +40,7 @@ public class FollowBatchScheduler {
 
         if (!inserts.isEmpty()) {
             followersRepository.saveAll(inserts);
-            log.info("➕ Added {} followers", inserts.size());
+            log.info("Added {} followers", inserts.size());
         }
 
         if (!deletes.isEmpty()) {
@@ -48,7 +48,7 @@ public class FollowBatchScheduler {
                 followersRepository.deleteByFollowerUserIdAndFollowedUserId(
                         model.getFollowerUserId(), model.getFollowedUserId());
             }
-            log.info("➖ Removed {} followers", deletes.size());
+            log.info("Removed {} followers", deletes.size());
         }
 
         if (!followerDeltas.isEmpty()) {
@@ -59,7 +59,7 @@ public class FollowBatchScheduler {
                     .collect(Collectors.toList());
 
             mongoTemplate.getCollection("Users").bulkWrite(followerUpdates);
-            log.info("🔁 Updated followersCount for {} users", followerUpdates.size());
+            log.info("Updated followersCount for {} users", followerUpdates.size());
         }
 
         if (!followingDeltas.isEmpty()) {
@@ -70,7 +70,7 @@ public class FollowBatchScheduler {
                     .collect(Collectors.toList());
 
             mongoTemplate.getCollection("Users").bulkWrite(followingUpdates);
-            log.info("🔁 Updated followingCount for {} users", followingUpdates.size());
+            log.info("Updated followingCount for {} users", followingUpdates.size());
         }
 
     }

@@ -129,7 +129,7 @@ export const ProfilePage: React.FC = () => {
 
     profileLoadingInitiatedRef.current = true
     
-    fetchUserProfile().then(() => {
+    fetchUserProfile(username).then(() => {
       fetchMemesByTab(activeTab);
     });
 
@@ -192,7 +192,8 @@ export const ProfilePage: React.FC = () => {
       const result = await useMemeContentStore.getState().fetchUserMemes(
         offsetValue,
         limit,
-        type
+        type,
+        username
       );
       
       if (result) {
@@ -264,7 +265,7 @@ export const ProfilePage: React.FC = () => {
         if (viewedUserProfile?.userId) {
           userId = viewedUserProfile.userId;
         } else if (username) {
-          await fetchUserProfile();
+          await fetchUserProfile(username);
           
           const updatedState = useUserStore.getState();
           userId = updatedState.viewedUserProfile?.userId;
@@ -279,7 +280,7 @@ export const ProfilePage: React.FC = () => {
       const existingFollowers = isOwnProfile ? loggedInUserFollowers : viewedUserFollowers;
       
       if (!existingFollowers || existingFollowers.length === 0) {        
-        const response = await fetchFollowData('followers', 0, 50);
+        const response = await fetchFollowData('followers', 0, 50, username);
         
         if (response && response.followers && Array.isArray(response.followers)) {          
           useUserStore.setState(state => {
@@ -312,7 +313,7 @@ export const ProfilePage: React.FC = () => {
         if (viewedUserProfile?.userId) {
           userId = viewedUserProfile.userId;
         } else if (username) {
-          await fetchUserProfile();
+          await fetchUserProfile(username);
           const updatedState = useUserStore.getState();
           userId = updatedState.viewedUserProfile?.userId;
         }
@@ -326,7 +327,7 @@ export const ProfilePage: React.FC = () => {
       const existingFollowing = isOwnProfile ? loggedInUserFollowing : viewedUserFollowing;
       
       if (!existingFollowing || existingFollowing.length === 0) {
-        const response = await fetchFollowData('following', 0, 50);
+        const response = await fetchFollowData('following', 0, 50, username);
         
         if (response && response.following && Array.isArray(response.following)) {
           useUserStore.setState(state => {

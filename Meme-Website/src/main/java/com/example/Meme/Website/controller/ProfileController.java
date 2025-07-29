@@ -2,10 +2,8 @@ package com.example.Meme.Website.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.Meme.Website.models.UserPrincipal;
 import com.example.Meme.Website.services.ProfileService;
 
 
@@ -16,32 +14,29 @@ public class ProfileController {
     @Autowired
     private ProfileService profileService;
 
-    @GetMapping()
+    @GetMapping("/{username}")
     public ResponseEntity<?> userProfile(
-            @AuthenticationPrincipal UserPrincipal user) {
-                String username = user.getUsername();
+            @PathVariable String username) {
         return profileService.userProfile(username);
     }
 
-    @GetMapping("/FollowType/{type}")
+    @GetMapping("/{username}/FollowType/{type}")
     public ResponseEntity<?> getFollowData(
-            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable String username,
             @PathVariable String type,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
-                String userId = user.getUserId();
-        return profileService.getFollowData(userId, offset, limit, type);
+        return profileService.getFollowData(username, offset, limit, type);
     }
 
 
-    @GetMapping("/user-memes")
+    @GetMapping("/{username}/user-memes")
     public ResponseEntity<?> getUserMemes(
-            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable String username,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "UPLOAD") String type) {
-                String userId = user.getUserId();
-        return profileService.getUserProfileMemes(userId, offset, limit, type);
+        return profileService.getUserProfileMemes(username, offset, limit, type);
     }
 
 }

@@ -73,8 +73,7 @@ public class AuthService {
             if (rawUsername.isEmpty() || rawEmail.isEmpty() || user.getPassword() == null
                     || user.getPassword().isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(new RegisterResponse("Username, Email, and Password must not be empty", null, null,
-                                null));
+                        .body(new RegisterResponse("Username, Email, and Password must not be empty", null, null));
             }
 
             boolean usernameExists = userRepository.existsByUsername(rawUsername);
@@ -91,7 +90,7 @@ public class AuthService {
 
                 log.warn("Registration failed for '{}': {}", rawUsername, errorMessage);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new RegisterResponse(errorMessage, null, null, null));
+                        .body(new RegisterResponse(errorMessage, null, null));
             }
 
             user.setUsername(rawUsername);
@@ -124,13 +123,12 @@ public class AuthService {
             log.info("✅ User '{}' registered successfully", savedUser.getUsername());
 
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new RegisterResponse(savedUser.getUsername(), accessToken, refreshToken,
-                            savedUser.getUserId()));
+                    .body(new RegisterResponse(savedUser.getUsername(), accessToken, refreshToken));
 
         } catch (Exception e) {
             log.error("❌ Registration error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new RegisterResponse("Registration failed! Please try again later.", null, null, null));
+                    .body(new RegisterResponse("Registration failed! Please try again later.", null, null));
         }
     }
 

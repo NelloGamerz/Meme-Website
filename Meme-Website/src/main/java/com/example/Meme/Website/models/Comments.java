@@ -19,5 +19,5 @@ public class Comments {
     private String username;
     private String text;
     private Date createdAt;
-    private String ProfilePictureUrl;
+    private String profilePictureUrl;
 }

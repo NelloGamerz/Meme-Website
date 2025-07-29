@@ -49,7 +49,7 @@ public class InteractionBatchScheduler {
 
         if (!inserts.isEmpty()) {
             interactionRepository.saveAll(inserts);
-            log.info("✅ Inserted {} interactions", inserts.size());
+            log.info("Inserted {} interactions", inserts.size());
         }
 
         if (!deletes.isEmpty()) {
@@ -62,7 +62,7 @@ public class InteractionBatchScheduler {
                     .collect(Collectors.toList());
 
             mongoTemplate.getCollection("userInteractions").bulkWrite(deleteOps);
-            log.info("🗑️ Bulk deleted {} interactions", deleteOps.size());
+            log.info("Bulk deleted {} interactions", deleteOps.size());
         }
 
         if (!likeDeltas.isEmpty()) {
@@ -73,7 +73,7 @@ public class InteractionBatchScheduler {
                     .collect(Collectors.toList());
 
             BulkWriteResult likeResult = mongoTemplate.getCollection("memes").bulkWrite(likeUpdates);
-            log.info("❤️ Updated likecount for {} memes", likeResult.getModifiedCount());
+            log.info("Updated likecount for {} memes", likeResult.getModifiedCount());
         }
 
         if (!saveDeltas.isEmpty()) {
@@ -84,7 +84,7 @@ public class InteractionBatchScheduler {
                     .collect(Collectors.toList());
 
             BulkWriteResult saveResult = mongoTemplate.getCollection("memes").bulkWrite(saveUpdates);
-            log.info("💾 Updated savecount for {} memes", saveResult.getModifiedCount());
+            log.info("Updated savecount for {} memes", saveResult.getModifiedCount());
         }
 
         if (!viewDeltas.isEmpty()) {
@@ -95,7 +95,7 @@ public class InteractionBatchScheduler {
                     .collect(Collectors.toList());
 
             BulkWriteResult viewResult = mongoTemplate.getCollection("memes").bulkWrite(viewUpdates);
-            log.info("👁️ Updated viewCount for {} memes", viewResult.getModifiedCount());
+            log.info("Updated viewCount for {} memes", viewResult.getModifiedCount());
         }
 
         if (!uploadDeltas.isEmpty()) {
@@ -106,7 +106,7 @@ public class InteractionBatchScheduler {
                     .collect(Collectors.toList());
 
             BulkWriteResult viewResult = mongoTemplate.getCollection("memes").bulkWrite(viewUpdates);
-            log.info("👁️ Updated viewCount for {} memes", viewResult.getModifiedCount());
+            log.info("Updated viewCount for {} memes", viewResult.getModifiedCount());
         }
 
         if (!tagDeltas.isEmpty()) {
@@ -129,7 +129,7 @@ public class InteractionBatchScheduler {
             }
 
             BulkWriteResult tagResult = mongoTemplate.getCollection("userModel").bulkWrite(tagUpdates);
-            log.info("🏷️ Updated tag interactions for {} users", tagResult.getModifiedCount());
+            log.info("Updated tag interactions for {} users", tagResult.getModifiedCount());
         }
     }
 

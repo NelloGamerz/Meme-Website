@@ -1,5 +1,5 @@
 export interface User{
-  userId: string,
+  userId?: string,
   username?: string,
   profilePictureUrl: string,
   memeList: Meme[]
@@ -13,7 +13,7 @@ export interface User{
 }
 
 export interface UserApi{
-  userId: string,
+  userId?: string,
   username: string,
   profilePictureUrl: string,
   memeList: Meme[]

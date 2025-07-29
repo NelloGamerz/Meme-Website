@@ -134,7 +134,7 @@ interface UserState {
 }
 
 interface UserActions {
-  fetchUserProfile: () => Promise<void>;
+  fetchUserProfile: (username?: string) => Promise<void>;
   updateProfilePicture: (file: File, userId: string) => Promise<void>;
   // updateUserName: (userId: string, newUsername: string) => Promise<void>;
   updateUserProfile: (
@@ -163,7 +163,8 @@ interface UserActions {
   fetchFollowData: (
     type: "followers" | "following",
     offset: number,
-    limit: number
+    limit: number,
+    username?: string
   ) => Promise<{
     followers?: Followers[];
     following?: Following[];
@@ -313,7 +314,7 @@ const useRawUserStore = create<UserStore>()(
 
       if (authUser && authUser.username) {
         try {
-          await get().fetchUserProfile();
+          await get().fetchUserProfile(authUser.username);
         } catch (error) {
           console.error("Failed to fetch user profile after auth state change:", error);
         }
@@ -353,14 +354,16 @@ const useRawUserStore = create<UserStore>()(
       });
     },
 
-    fetchUserProfile: async () => {
+    fetchUserProfile: async (username?: string) => {
       try {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
 
-        const response = await api.get('/profile');
+        // Determine the API endpoint based on whether username is provided
+        const endpoint = username ? `/profile/${username}` : '/profile';
+        const response = await api.get(endpoint);
 
         const mappedMemeList =
           response.data.memeList?.map(
@@ -376,8 +379,12 @@ const useRawUserStore = create<UserStore>()(
             }
           ) || [];
 
+        // Determine if this is the user's own profile
+        const currentUser = getCurrentAuthUser();
+        const isOwnProfile = !username || username === currentUser.username;
+
         const userProfile: UserProfile = {
-          userId: response.data.userId,
+          userId: response.data.userId || "",
           username: response.data.username,
           profilePictureUrl: response.data.profilePictureUrl,
           profileBannerUrl: response.data.profileBannerUrl,
@@ -391,26 +398,28 @@ const useRawUserStore = create<UserStore>()(
           memeList: mappedMemeList,
           followed: response.data.followed,
           followback: response.data.followback,
-          isOwnProfile: true,
+          isOwnProfile: isOwnProfile,
         };
 
         set((state) => {
-          // Set both logged in user and viewed user profile (since it's always the current user now)
-          state.loggedInUserProfile = userProfile;
-          state.isLoggedInUserProfileLoaded = true;
-          state.loggedInUserProfilePictureUrl = userProfile.profilePictureUrl;
-          state.loggedInUserProfileBannerUrl = userProfile.profileBannerUrl;
-          state.loggedInUserName = userProfile.username;
-          state.loggedInUserCreated = userProfile.userCreated;
-          state.loggedInUserFollowersCount = userProfile.followersCount;
-          state.loggedInUserFollowingCount = userProfile.followingCount;
-          state.loggedInUserFollowers = userProfile.followers;
-          state.loggedInUserFollowing = userProfile.following;
-          state.loggedInUserLikedMemes = userProfile.likedMemes;
-          state.loggedInUserSavedMemes = userProfile.savedMemes;
-          state.loggedInUserMemeList = userProfile.memeList;
+          if (isOwnProfile) {
+            // Update logged in user profile data
+            state.loggedInUserProfile = userProfile;
+            state.isLoggedInUserProfileLoaded = true;
+            state.loggedInUserProfilePictureUrl = userProfile.profilePictureUrl;
+            state.loggedInUserProfileBannerUrl = userProfile.profileBannerUrl;
+            state.loggedInUserName = userProfile.username;
+            state.loggedInUserCreated = userProfile.userCreated;
+            state.loggedInUserFollowersCount = userProfile.followersCount;
+            state.loggedInUserFollowingCount = userProfile.followingCount;
+            state.loggedInUserFollowers = userProfile.followers;
+            state.loggedInUserFollowing = userProfile.following;
+            state.loggedInUserLikedMemes = userProfile.likedMemes;
+            state.loggedInUserSavedMemes = userProfile.savedMemes;
+            state.loggedInUserMemeList = userProfile.memeList;
+          }
 
-          // Also set viewed user profile to the same data
+          // Always set viewed user profile data (for both own profile and other users)
           state.viewedUserProfile = userProfile;
           state.viewedUserProfilePictureUrl = userProfile.profilePictureUrl;
           state.viewedUserProfileBannerUrl = userProfile.profileBannerUrl;
@@ -423,7 +432,7 @@ const useRawUserStore = create<UserStore>()(
           state.viewedUserLikedMemes = userProfile.likedMemes;
           state.viewedUserSavedMemes = userProfile.savedMemes;
           state.viewedUserMemeList = userProfile.memeList;
-          state.isFollowingViewedUser = false;
+          state.isFollowingViewedUser = userProfile.followed || false;
 
           state.isLoading = false;
         });
@@ -487,58 +496,6 @@ const useRawUserStore = create<UserStore>()(
         });
       }
     },
-
-    // updateUserName: async (userId: string, newUsername: string) => {
-    //   try {
-    //     set((state) => {
-    //       state.isLoading = true;
-    //       state.error = null;
-    //     });
-
-    //     await api.put(`/profile/${userId}/username`, {
-    //       newUsername,
-    //     });
-
-    //     const user = getCurrentAuthUser();
-    //     const oldUsername = user.username;
-    //     user.username = newUsername;
-
-    //     set((state) => {
-    //       state.loggedInUserName = newUsername;
-
-    //       if (state.loggedInUserProfile) {
-    //         state.loggedInUserProfile.username = newUsername;
-    //       }
-
-    //       if (state.profileCache[oldUsername]) {
-    //         state.profileCache[newUsername] = {
-    //           ...state.profileCache[oldUsername],
-    //           profile: {
-    //             ...state.profileCache[oldUsername].profile,
-    //             username: newUsername,
-    //           },
-    //         };
-
-    //         delete state.profileCache[oldUsername];
-    //       }
-
-    //       state.loggedInUserMemeList.forEach((meme) => {
-    //         if (meme.userId === userId) {
-    //           meme.uploader = newUsername;
-    //         }
-    //       });
-
-    //       state.isLoading = false;
-    //     });
-    //   } catch (error) {
-    //     console.error("Error updating username:", error);
-    //     set((state) => {
-    //       state.error = "Failed to update username";
-    //       state.isLoading = false;
-    //     });
-    //   }
-    // },
-
     updateUserProfile: async (
       data: {
         username?: string;
@@ -1069,7 +1026,8 @@ const useRawUserStore = create<UserStore>()(
     fetchFollowData: async (
       type: "followers" | "following",
       offset: number,
-      limit: number
+      limit: number,
+      username?: string
     ) => {
       try {
         set((state) => {
@@ -1077,9 +1035,12 @@ const useRawUserStore = create<UserStore>()(
           state.error = null;
         });
 
-        const response = await api.get(
-          `/profile/FollowType/${type}?offset=${offset}&limit=${limit}`
-        );
+        // Determine the API endpoint based on whether username is provided
+        const endpoint = username 
+          ? `/profile/${username}/FollowType/${type}?offset=${offset}&limit=${limit}`
+          : `/profile/FollowType/${type}?offset=${offset}&limit=${limit}`;
+        
+        const response = await api.get(endpoint);
 
         set((state) => {
           state.isLoading = false;

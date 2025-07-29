@@ -87,7 +87,8 @@ interface MemeContentActions {
   fetchUserMemes: (
     offset?: number,
     limit?: number,
-    type?: string
+    type?: string,
+    username?: string
   ) => Promise<{
     memes: Meme[];
     hasMore: boolean;
@@ -839,7 +840,8 @@ const useRawMemeContentStore = create<MemeContentStore>()(
     fetchUserMemes: async (
       offset?: number,
       limit?: number,
-      type?: string
+      type?: string,
+      username?: string
     ): Promise<{
       memes: Meme[];
       hasMore: boolean;
@@ -857,7 +859,10 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           }
         });
 
-        const response = await api.get(`/profile/user-memes`, {
+        // Determine the API endpoint based on whether username is provided
+        const endpoint = username ? `/profile/${username}/user-memes` : `/profile/user-memes`;
+        
+        const response = await api.get(endpoint, {
           params: {
             offset: actualOffset,
             limit: actualLimit,

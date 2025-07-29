@@ -259,7 +259,9 @@ class WebSocketService {
     if (this.client) {
       try {
         this.client.close(1000, "User logged out");
-      } catch (error) {}
+      } catch (error) {
+        console.log(error)
+      }
     }
     
     this.client = null;
