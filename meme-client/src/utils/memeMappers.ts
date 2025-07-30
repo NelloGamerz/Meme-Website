@@ -18,7 +18,6 @@ export const mapApiMemeToMeme = (
   commentsCount: apiMeme.commentsCount,
   memeCreated: apiMeme.memeCreated,
   profilePictureUrl: apiMeme.profilePictureUrl,
-  userId: apiMeme.userId,
   tags: apiMeme.tags,
   liked: liked,
   saved: saved,
