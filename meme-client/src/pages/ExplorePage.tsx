@@ -311,7 +311,7 @@ export const ExplorePage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                   {searchUsers.map((user) => (
                     <UserCard
-                      key={user.userId}
+                      // key={user.userId}
                       user={user}
                       onClick={handleUserClick}
                     />

@@ -26,7 +26,7 @@ interface NotificationData {
 
 // Global state to prevent duplicate API calls
 let globalState = {
-  user: { userId: "", username: "", email: "", profilePicture: "" },
+  user: {username: "", email: "", profilePicture: "" },
   notificationsFetched: false,
   webSocketHandlersRegistered: false,
   unregisterHandlers: [] as (() => void)[],
@@ -43,7 +43,6 @@ const initializeUser = () => {
   try {
     const authUser = useAuthStore.getState().getCurrentUser();
     globalState.user = {
-      userId: authUser?.userId || "",
       username: authUser?.username || "",
       email: authUser?.email || "",
       profilePicture: authUser?.profilePicture || ""
@@ -54,7 +53,7 @@ const initializeUser = () => {
 };
 
 const setupWebSocketHandlers = () => {
-  if (globalState.webSocketHandlersRegistered || !globalState.user.userId) return;
+  if (globalState.webSocketHandlersRegistered || !globalState.user.username) return;
 
   const getNotificationMessage = (data: NotificationData): string => {
     switch (data.type) {
@@ -75,8 +74,7 @@ const setupWebSocketHandlers = () => {
     const authUser = useAuthStore.getState().getCurrentUser();
     const currentUsername = loggedInUserName || authUser?.username || "";
 
-    if ((notificationData.recipientId === globalState.user.userId || 
-         notificationData.recipientUsername === currentUsername || 
+    if ((notificationData.recipientUsername === currentUsername || 
          notificationData.receiverUsername === currentUsername || 
          notificationData.targetUsername === currentUsername)) {
               
@@ -86,7 +84,6 @@ const setupWebSocketHandlers = () => {
         id: notificationData.id || crypto.randomUUID(),
         type: notificationData.type,
         message: notificationData.message || getNotificationMessage(notificationData),
-        userId: notificationData.userId || notificationData.senderId,
         senderUsername: notificationData.username || notificationData.senderUsername,
         profilePictureUrl: notificationData.profilePictureUrl || notificationData.senderProfilePictureUrl,
         createdAt: new Date(),
@@ -145,10 +142,10 @@ export const useNavigationData = () => {
 
   // Setup WebSocket handlers
   useEffect(() => {
-    if (globalState.user.userId) {
+    if (globalState.user.username) {
       setupWebSocketHandlers();
     }
-  }, [globalState.user.userId]);
+  }, [globalState.user.username]);
 
   // Fetch notifications
   useEffect(() => {
@@ -181,7 +178,7 @@ export const useNavigationData = () => {
       if (customEvent.detail && customEvent.detail.notification) {
         const authUser = useAuthStore.getState().getCurrentUser();
         
-        if (authUser?.userId) {
+        if (authUser?.username) {
           globalState.unreadCount += 1;
           notifySubscribers();
         }

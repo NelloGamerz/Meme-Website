@@ -47,18 +47,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
     document.body.style.display = "";
   }, []);
 
-  // Function to set theme with side effects
   const setTheme = useCallback(
     (newTheme: ThemeType) => {
       applyTheme(newTheme);
       setThemeState(newTheme);
       
-      // Update global auth state with new theme
       const authUser = getCurrentAuthUser();
       if (authUser) {
         updateGlobalAuthState({
           username: authUser.username,
-          userId: authUser.userId,
           theme: newTheme,
           isAuthenticated: authUser.isAuthenticated
         });

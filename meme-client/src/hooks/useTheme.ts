@@ -31,7 +31,6 @@ export const useTheme = () => {
     if (authUser) {
       updateGlobalAuthState({
         username: authUser.username,
-        userId: authUser.userId,
         theme: theme,
         isAuthenticated: authUser.isAuthenticated
       });

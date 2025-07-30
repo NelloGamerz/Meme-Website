@@ -171,7 +171,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         let likedMemeIds: string[] = [];
         let savedMemeIds: string[] = [];
 
-        if (user && user.userId) {
+        if (user) {
           const response = await api.get(`memes/feed/main`, {
             params: {
               page: 1,
@@ -217,7 +217,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           }
         }
 
-        if (user && user.userId) {
+        if (user) {
           const likedMemes = memes.filter((meme) =>
             likedMemeIds.includes(meme.id)
           );
@@ -683,20 +683,11 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           state.error = null;
         });
 
-        // Get the current user from auth store
-        const user = getCurrentAuthUser();
-        const userId = user?.userId || "";
 
-        // For meme detail page, we want to include basic meme info but not comments
-        // We'll fetch comments separately with pagination
-        // Include userId in the request to get personalized like/save status
         const response = await api.get(
-          `/memes/memepage/${id}?excludeComments=true${
-            userId ? `&userId=${userId}` : ""
-          }`
+          `/memes/memepage/${id}`
         );
 
-        // Check if the response includes liked and saved status
         let liked = false;
         let saved = false;
 
@@ -1113,16 +1104,16 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             state.searchMemes = updateMemeInArray(state.searchMemes);
 
             const user = getCurrentAuthUser();
-            if (user && user.userId) {
-              const userId = user.userId;
-              if (state.profileTabsCache[userId]) {
+            if (user && user.username) {
+              const username = user.username;
+              if (state.profileTabsCache[username]) {
                 try {
-                  Object.keys(state.profileTabsCache[userId]).forEach(
+                  Object.keys(state.profileTabsCache[username]).forEach(
                     (tabType) => {
-                      if (state.profileTabsCache[userId][tabType]?.memes) {
+                      if (state.profileTabsCache[username][tabType]?.memes) {
                         const memesCopy = JSON.parse(
                           JSON.stringify(
-                            state.profileTabsCache[userId][tabType].memes
+                            state.profileTabsCache[username][tabType].memes
                           )
                         );
 
@@ -1137,7 +1128,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
                               : m
                         );
 
-                        state.profileTabsCache[userId][tabType].memes =
+                        state.profileTabsCache[username][tabType].memes =
                           updatedMemes;
                       }
                     }
@@ -1145,15 +1136,15 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
                   if (
                     !newSaveState &&
-                    state.profileTabsCache[userId]["SAVE"]
+                    state.profileTabsCache[username]["SAVE"]
                   ) {
                     const memesCopy = JSON.parse(
                       JSON.stringify(
-                        state.profileTabsCache[userId]["SAVE"].memes
+                        state.profileTabsCache[username]["SAVE"].memes
                       )
                     );
 
-                    state.profileTabsCache[userId]["SAVE"].memes =
+                    state.profileTabsCache[username]["SAVE"].memes =
                       memesCopy.filter((m: { id: string }) => m.id !== id);
                   }
                 } catch (err) {
@@ -1227,7 +1218,6 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         const newComment: Comment = {
           id: response.data.id,
           memeId,
-          userId,
           text,
           username,
           createdAt: new Date().toISOString(),
@@ -1560,10 +1550,10 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         state.userDataLoaded = false;
 
         const user = getCurrentAuthUser();
-        if (user && user.userId) {
-          const userId = user.userId;
-          if (state.profileTabsCache[userId]) {
-            delete state.profileTabsCache[userId];
+        if (user && user.username) {
+          const username = user.username;
+          if (state.profileTabsCache[username]) {
+            delete state.profileTabsCache[username];
           }
         }
       });

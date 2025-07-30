@@ -36,7 +36,7 @@ const MemeDetailPage: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   
   const { isAuthenticated, isLoading: isAuthLoading } = useAuthCheck();
-  const { username: authUsername, userId: authUserId } = useAuthContext();
+  const { username: authUsername} = useAuthContext();
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginAction, setLoginAction] = useState("");
 
@@ -242,7 +242,7 @@ const MemeDetailPage: React.FC = () => {
     } finally {
       setIsLoadingMoreMemes(false);
     }
-  }, [isAuthenticated, id, authUserId, fetchRecomendedMemes]);
+  }, [isAuthenticated, id,fetchRecomendedMemes]);
 
   useEffect(() => {
     if (isAuthLoading) {
@@ -329,9 +329,9 @@ const MemeDetailPage: React.FC = () => {
             } catch (error) {}
           }
 
-          if (isAuthenticated && authUserId && !isLoggedInUserProfileLoaded) {
+          if (isAuthenticated && !isLoggedInUserProfileLoaded) {
             await fetchUserProfile();
-          } else if (isAuthenticated && authUserId && isLoggedInUserProfileLoaded) {
+          } else if (isAuthenticated && isLoggedInUserProfileLoaded) {
           }
         } finally {
           setIsInitialLoading(false);
@@ -369,7 +369,6 @@ const MemeDetailPage: React.FC = () => {
     fetchMemeById,
     fetchMemeComments,
     fetchUserProfile,
-    authUserId,
     joinPostSession,
     leavePostSession,
     isLoggedInUserProfileLoaded,
@@ -585,7 +584,6 @@ const MemeDetailPage: React.FC = () => {
     const optimisticComment: Comment = {
       id: `temp-${Date.now()}`,
       memeId: id,
-      userId: authUserId || "",
       username: authUsername || "",
       text: comment.trim(),
       createdAt: new Date().toISOString(),
@@ -647,7 +645,6 @@ const MemeDetailPage: React.FC = () => {
           memeId: meme.id,
           action: action,
           username: authUsername,
-          userId: authUserId,
         });
       }
     }
@@ -673,7 +670,6 @@ const MemeDetailPage: React.FC = () => {
           memeId: meme.id,
           action: action,
           username: authUsername,
-          userId: authUserId,
         });
       }
     }

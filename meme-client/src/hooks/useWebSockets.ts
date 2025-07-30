@@ -7,9 +7,8 @@ import WebSocketService, {
 
 interface WebSocketStore {
   isConnected: boolean;
-  userId: string | null;
   client: WebSocket | null; 
-  connect: (userId: string) => void;
+  connect: () => void;
   disconnect: () => void;
   restoreConnection: () => void;
   sendMessage: (message: WebSocketMessage) => boolean;
@@ -23,18 +22,15 @@ interface WebSocketStore {
   sendCommentRequest: (memeId: string, text: string, profilePictureUrl: string) => boolean;
 }
 
-export const useWebSocketStore = create<WebSocketStore>((set) => ({
+export const useWebSocketStore = create<WebSocketStore>(() => ({
   isConnected: WebSocketService.isConnected(),
-  userId: null,
   client: WebSocketService.getClient(),
-  connect: (userId: string) => {
-    set({ userId });
-    WebSocketService.connect(userId);
+  connect: () => {
+    WebSocketService.connect();
   },
   
   disconnect: () => {
     WebSocketService.disconnect();
-    set({ userId: null });
   },
   
   restoreConnection: () => {

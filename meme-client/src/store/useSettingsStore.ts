@@ -42,7 +42,6 @@ const DEFAULT_SETTINGS: UserSettings = {
 const getInitialTheme = (): ThemeType => {
   if (typeof window === "undefined") return "light";
 
-  // Get theme from global auth state
   const authUser = getCurrentAuthUser();
   if (authUser && authUser.theme && ["light", "dark"].includes(authUser.theme)) {
     return authUser.theme as ThemeType;
@@ -58,7 +57,6 @@ const applyThemeToDOM = (theme: ThemeType) => {
   root.classList.remove("light", "dark");
   root.classList.add(theme);
 
-  // Force a repaint for smooth transition
   document.body.style.display = "none";
   document.body.offsetHeight;
   document.body.style.display = "";
@@ -77,31 +75,25 @@ const useRawSettingsStore = create<SettingsStore>()(
     setTheme: async (theme: ThemeType) => {
       const currentTheme = get().settings.theme;
       
-      // Set loading state
       set((state) => {
         state.isLoading = true;
         state.error = null;
       });
 
       try {
-        // Send to backend first and wait for response
         await api.patch("/user/settings", { theme });
 
-        // Only update after successful backend response
         set((state) => {
           state.settings.theme = theme;
           state.isLoading = false;
         });
 
-        // Apply theme to DOM
         applyThemeToDOM(theme);
 
-        // Update global auth state with new theme
         const authUser = getCurrentAuthUser();
         if (authUser) {
           updateGlobalAuthState({
             username: authUser.username,
-            userId: authUser.userId,
             theme: theme,
             isAuthenticated: authUser.isAuthenticated
           });
@@ -113,7 +105,6 @@ const useRawSettingsStore = create<SettingsStore>()(
         });
 
       } catch (error: any) {
-        // Revert to current theme on error
         set((state) => {
           state.settings.theme = currentTheme;
           state.isLoading = false;
@@ -136,12 +127,10 @@ const useRawSettingsStore = create<SettingsStore>()(
 
       applyThemeToDOM(theme);
 
-      // Update global auth state with new theme
       const authUser = getCurrentAuthUser();
       if (authUser) {
         updateGlobalAuthState({
           username: authUser.username,
-          userId: authUser.userId,
           theme: theme,
           isAuthenticated: authUser.isAuthenticated
         });
@@ -172,7 +161,6 @@ const useRawSettingsStore = create<SettingsStore>()(
         if (authUser) {
           updateGlobalAuthState({
             username: authUser.username,
-            userId: authUser.userId,
             theme: fetchedSettings.theme,
             isAuthenticated: authUser.isAuthenticated
           });
@@ -192,7 +180,6 @@ const useRawSettingsStore = create<SettingsStore>()(
     updateSettings: async (newSettings: Partial<UserSettings>) => {
       const currentSettings = get().settings;
 
-      // Optimistically update
       set((state) => {
         state.settings = { ...state.settings, ...newSettings };
         state.error = null;
@@ -203,7 +190,6 @@ const useRawSettingsStore = create<SettingsStore>()(
           state.isLoading = true;
         });
 
-        // Convert settings to Map<String, String> format for Java backend
         const settingsMap: Record<string, string> = {};
         Object.entries(newSettings).forEach(([key, value]) => {
           settingsMap[key] = String(value);
@@ -215,16 +201,13 @@ const useRawSettingsStore = create<SettingsStore>()(
           state.isLoading = false;
         });
 
-        // Apply theme if it was updated
         if (newSettings.theme) {
           applyThemeToDOM(newSettings.theme);
           
-          // Update global auth state with new theme
           const authUser = getCurrentAuthUser();
           if (authUser) {
             updateGlobalAuthState({
               username: authUser.username,
-              userId: authUser.userId,
               theme: newSettings.theme,
               isAuthenticated: authUser.isAuthenticated
             });
@@ -237,23 +220,19 @@ const useRawSettingsStore = create<SettingsStore>()(
         });
 
       } catch (error: any) {
-        // Revert changes on error
         set((state) => {
           state.settings = currentSettings;
           state.isLoading = false;
           state.error = error?.response?.data?.message || "Failed to update settings";
         });
 
-        // Revert theme if it was changed
         if (newSettings.theme) {
           applyThemeToDOM(currentSettings.theme);
           
-          // Revert global auth state theme
           const authUser = getCurrentAuthUser();
           if (authUser) {
             updateGlobalAuthState({
               username: authUser.username,
-              userId: authUser.userId,
               theme: currentSettings.theme,
               isAuthenticated: authUser.isAuthenticated
             });

@@ -11,7 +11,6 @@ import { getCurrentAuthUser } from '../../utils/authHelpers';
 const getCurrentUser = () => {
   const authUser = getCurrentAuthUser();
   return authUser ? { 
-    userId: authUser.userId || '', 
     username: authUser.username || '' 
   } : { userId: '', username: '' };
 };
@@ -95,15 +94,13 @@ export const NotificationsList: React.FC = () => {
       const isForCurrentUser = 
         (data.receiverUsername === user.username) || 
         (data.targetUsername === user.username) ||
-        (data.recipientUsername === user.username) ||
-        (data.recipientId === user.userId);
-          
+        (data.recipientUsername === user.username);
+
       if (isForCurrentUser && user.username) {        
         const newNotification: Partial<Notification> = {
           id: data.id || crypto.randomUUID(),
           type: data.type,
           message: data.message || getNotificationMessage(data),
-          userId: data.userId || data.senderId,
           senderUsername: data.username || data.senderUsername,
           profilePictureUrl: data.profilePictureUrl || data.senderProfilePictureUrl,
           createdAt: new Date(),

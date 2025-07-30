@@ -25,7 +25,6 @@ class WebSocketService {
 
   private client: WebSocket | null = null;
   private connectionState: ConnectionState = 'DISCONNECTED';
-  private userId: string | null = null;
   private reconnectAttempts = 0;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private connectionMonitorTimer: NodeJS.Timeout | null = null;
@@ -75,19 +74,9 @@ class WebSocketService {
     this.connectionMonitorTimer = setInterval(() => {
       if (this.isApplicationActive) {
         try {
-          if (!this.userId) {
-            import('../store/useAuthStore').then(({ useAuthStore }) => {
-              const authState = useAuthStore.getState();
-              if (authState.user?.userId) {
-                this.userId = authState.user.userId;
-              }
-            }).catch(() => {});
-          }
-          
-          if (this.userId && 
-              (this.connectionState !== 'CONNECTED' || 
-               !this.client || 
-               (this.client && this.client.readyState !== WebSocket.OPEN))) {
+          if (this.connectionState !== 'CONNECTED' || 
+              !this.client || 
+              (this.client && this.client.readyState !== WebSocket.OPEN)) {
             this.restoreConnection();
           } else if (this.connectionState === 'CONNECTED' && this.client) {
             this.checkConnection();
@@ -131,9 +120,7 @@ class WebSocketService {
     }
   };
 
-  public connect(userId: string): void {
-    this.userId = userId;
-    
+  public connect(): void {
     if (this.client) {
       this.disconnect();
     }
@@ -196,19 +183,15 @@ class WebSocketService {
       setTimeout(() => this.reconnect(), 500);
     } else if (event.code === 1011) {
       setTimeout(() => {
-        if (this.userId) {
-          this.connect(this.userId);
-          setTimeout(() => {
-            if (this.client && this.client.readyState === WebSocket.OPEN) {
-              const event = new CustomEvent('websocket-reconnected', { 
-                detail: { client: this.client } 
-              });
-              window.dispatchEvent(event);
-            }
-          }, 500);
-        } else {
-          this.reconnect();
-        }
+        this.connect();
+        setTimeout(() => {
+          if (this.client && this.client.readyState === WebSocket.OPEN) {
+            const event = new CustomEvent('websocket-reconnected', { 
+              detail: { client: this.client } 
+            });
+            window.dispatchEvent(event);
+          }
+        }, 500);
       }, 500);
     } else {
       this.reconnect();
@@ -265,7 +248,6 @@ class WebSocketService {
     }
     
     this.client = null;
-    this.userId = null;
     this.reconnectAttempts = 0;
     this.isApplicationActive = false;
     this.updateConnectionState('DISCONNECTED');
@@ -286,28 +268,8 @@ class WebSocketService {
     const delay = this.reconnectAttempts >= maxAttempts ? maxDelay : exponentialDelay;
     this.reconnectTimer = setTimeout(() => {
       if (this.connectionState !== 'CONNECTED') {
-        const currentUserId = this.userId || (() => {
-          try {
-            import('../store/useAuthStore').then(({ useAuthStore }) => {
-              const authState = useAuthStore.getState();
-              const userId = authState.user?.userId;
-              if (userId) {
-                this.reconnectAttempts++;
-                this.connect(userId);
-              }
-            }).catch(() => {});
-            return null;
-          } catch (e) {
-            return null;
-          }
-        })();
-        
-        if (currentUserId) {
-          this.reconnectAttempts++;
-          this.connect(currentUserId);
-        } else {
-        }
-      } else {
+        this.reconnectAttempts++;
+        this.connect();
       }
     }, delay);
   }
@@ -350,21 +312,7 @@ class WebSocketService {
       this.updateConnectionState('DISCONNECTED');
     }
     
-    if (this.userId) {
-      this.connect(this.userId);
-      return;
-    }
-    
-    try {
-      import('../store/useAuthStore').then(({ useAuthStore }) => {
-        const authState = useAuthStore.getState();
-        if (authState.user?.userId) {
-          this.connect(authState.user.userId);
-          this.userId = authState.user.userId;
-        }
-      }).catch(() => {});
-    } catch (error) {
-    }
+    this.connect();
   }
 
   private generateMessageId(message: WebSocketMessage): string {
@@ -527,7 +475,7 @@ class WebSocketService {
       const user = authState.user;
       
       // Check if we have a valid user
-      if (!user?.userId) {
+      if (!user?.username) {
         return false;
       }
       
@@ -537,7 +485,6 @@ class WebSocketService {
       
       const message = {
         type: 'FOLLOW' as WebSocketMessageType,
-        followerId: user.userId,
         followerUsername: user.username,
         followingUserId: targetUserId,
         followingUsername: targetUsername,
@@ -588,7 +535,7 @@ class WebSocketService {
     const authState = useAuthStore.getState();
     const user = authState.user;
     
-    if (!user?.userId || !user?.username) {
+    if (!user?.username) {
       return false;
     }
     
@@ -607,7 +554,6 @@ class WebSocketService {
     const message = {
       type: 'LIKE' as WebSocketMessageType,
       memeId,
-      userId: user.userId,
       username: user.username,
       action: isCurrentlyLiked ? 'UNLIKE' : 'LIKE',
     };
@@ -627,7 +573,7 @@ class WebSocketService {
     const authState = useAuthStore.getState();
     const user = authState.user;
     
-    if (!user?.userId || !user?.username) {
+    if (!user?.username) {
       return false;
     }
     
@@ -646,7 +592,6 @@ class WebSocketService {
     const message = {
       type: 'SAVE' as WebSocketMessageType,
       memeId,
-      userId: user.userId,
       username: user.username,
       action: isCurrentlySaved ? 'UNSAVE' : 'SAVE'
     };
@@ -666,7 +611,7 @@ class WebSocketService {
       const authState = useAuthStore.getState();
       const user = authState.user;
       
-      if (!user?.userId || !user?.username) {
+      if (!user?.username) {
         return false;
       }
       
@@ -682,7 +627,6 @@ class WebSocketService {
       const message = {
         type: 'COMMENT' as WebSocketMessageType,
         memeId,
-        userId: user.userId,
         username: user.username,
         text,
         profilePictureUrl,

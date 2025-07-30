@@ -3,7 +3,7 @@ import { useAuthContext } from '../../hooks/useAuthContext'
 import { getCurrentAuthUser } from '../../utils/authHelpers'
 
 export const UserInfo: React.FC = () => {
-  const { isAuthenticated, authUser, username, userId, isLoading } = useAuthContext()
+  const { isAuthenticated, authUser, username,isLoading } = useAuthContext()
 
   if (isLoading) {
     return <div>Loading user info...</div>
@@ -17,22 +17,21 @@ export const UserInfo: React.FC = () => {
     <div className="user-info">
       <h3>Current User Information</h3>
       <p><strong>Username:</strong> {username}</p>
-      <p><strong>User ID:</strong> {userId}</p>
       <p><strong>Full User Object:</strong> {JSON.stringify(authUser, null, 2)}</p>
     </div>
   )
 }
 
 export const ExampleUsage: React.FC = () => {
-  const { username, userId, isAuthenticated } = useAuthContext()
+  const { username,isAuthenticated } = useAuthContext()
   const handleSomeAction = () => {
-    if (isAuthenticated && username && userId) {
+    if (isAuthenticated && username) {
     }
   }
 
   const handleActionFromHelper = () => {
     const currentUser = getCurrentAuthUser()
-    if (currentUser?.isAuthenticated && currentUser.username && currentUser.userId) {
+    if (currentUser?.isAuthenticated && currentUser.username) {
     }
   }
 

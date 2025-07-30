@@ -39,7 +39,7 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const authUser = getCurrentAuthUser();
-  const user = authUser ? { username: authUser.username, userId: authUser.userId } : {};
+  const user = authUser ? { username: authUser.username} : {};
   const videoRef = useRef<HTMLVideoElement>(null);
   const usernameRef = useRef<HTMLSpanElement>(null);
   const usernameContainerRef = useRef<HTMLDivElement>(null);
@@ -126,7 +126,7 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await toggleSave(meme.id, user.username);
+    await toggleSave(meme.id, user.username ?? "");
     setLocalIsSaved(!isSaved);
     if (wsStore.isConnected) {
       wsStore.sendMessage({
@@ -141,7 +141,7 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setLocalIsLiked(!isLiked);
-    await toggleLike(meme.id, user.username);
+    await toggleLike(meme.id, user.username || "");
     if (wsStore.isConnected) {
       wsStore.sendMessage({
         type: "LIKE",

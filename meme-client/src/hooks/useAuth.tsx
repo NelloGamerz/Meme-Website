@@ -37,12 +37,10 @@ export const useAuthCheck = () => {
   const checkAuth = useAuthStore.use.checkAuth()
 
   useEffect(() => {
-    // Initialize auth state on mount
     initialize()
 
     const handleAuthStateChange = () => {
-      // Auth state is already managed by the store
-      // This event is dispatched by the store itself
+
     }
 
     window.addEventListener('auth-state-changed', handleAuthStateChange)
@@ -57,7 +55,6 @@ export const useAuthCheck = () => {
     authUser: user, 
     isLoading: isLoading || !isInitialized,
     username: user?.username || null,
-    userId: user?.userId || null,
     theme: user?.theme || 'light',
     refreshAuth: checkAuth
   }
@@ -79,9 +76,7 @@ const useAuth = () => {
 
       toast.success("Successfully logged in!")
       
-      // Update the auth store with user data
       const userData = {
-        userId: response.data.userId,
         username: response.data.username,
         email: response.data.email,
         profilePicture: response.data.profilePicture,
@@ -91,7 +86,6 @@ const useAuth = () => {
       setUser(userData);
       setAuthenticated(true);
       
-      // Update the user store with auth data and fetch profile
       const { handleAuthStateChange } = useUserStore.getState() as {
         handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
       };

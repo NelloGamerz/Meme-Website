@@ -9,12 +9,10 @@ const PasswordResetPage: React.FC = () => {
   useEffect(() => {
     const originalTheme = getCurrentTheme();
     
-    // Force light theme for auth pages without updating global context
     document.documentElement.classList.remove("dark", "system");
     document.documentElement.classList.add("light");
     
     return () => {
-      // Restore original theme classes without updating global context
       if (originalTheme) {
         document.documentElement.classList.remove("light", "dark", "system");
         document.documentElement.classList.add(originalTheme);

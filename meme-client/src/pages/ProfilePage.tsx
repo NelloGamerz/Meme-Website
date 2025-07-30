@@ -177,15 +177,15 @@ export const ProfilePage: React.FC = () => {
     }
     
     try {
-      let userId;
+      let lockedUsername;
       
       if (isOwnProfile) {
-        userId = loggedInUser.userId;
+        lockedUsername = loggedInUser.username;
       } else {
-        userId = viewedUserFollowers.find(f => f.username === username)?.userId || username;
+        lockedUsername = viewedUserFollowers.find(f => f.username === username)?.username || username;
       }
       
-      if (!userId) {
+      if (!lockedUsername) {
         return;
       }
             
@@ -257,22 +257,22 @@ export const ProfilePage: React.FC = () => {
     setIsFollowersModalOpen(true)
     
     try {
-      let userId;
+      let username;
       
       if (isOwnProfile) {
-        userId = loggedInUser.userId;
+        username = loggedInUser.username;
       } else {
-        if (viewedUserProfile?.userId) {
-          userId = viewedUserProfile.userId;
+        if (viewedUserProfile?.username) {
+          username = viewedUserProfile.username;
         } else if (username) {
           await fetchUserProfile(username);
           
           const updatedState = useUserStore.getState();
-          userId = updatedState.viewedUserProfile?.userId;
+          username = updatedState.viewedUserProfile?.username;
         }
       }
       
-      if (!userId) {
+      if (!username) {
         toast.error("Unable to load followers at this time");
         return;
       }
@@ -305,21 +305,21 @@ export const ProfilePage: React.FC = () => {
     setIsFollowingModalOpen(true)
     
     try {
-      let userId;
+      let username;
       
       if (isOwnProfile) {
-        userId = loggedInUser.userId;
+        username = loggedInUser.username;
       } else {
-        if (viewedUserProfile?.userId) {
-          userId = viewedUserProfile.userId;
+        if (viewedUserProfile?.username) {
+          username = viewedUserProfile.username;
         } else if (username) {
           await fetchUserProfile(username);
           const updatedState = useUserStore.getState();
-          userId = updatedState.viewedUserProfile?.userId;
+          username = updatedState.viewedUserProfile?.username;
         }
       }
       
-      if (!userId) {
+      if (!username) {
         toast.error("Unable to load following at this time");
         return;
       }

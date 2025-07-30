@@ -1,5 +1,4 @@
 export interface User{
-  userId?: string,
   username?: string,
   profilePictureUrl: string,
   memeList: Meme[]
@@ -13,7 +12,6 @@ export interface User{
 }
 
 export interface UserApi{
-  userId?: string,
   username: string,
   profilePictureUrl: string,
   memeList: Meme[]
@@ -40,7 +38,6 @@ export interface Meme {
   commentsCount: number;
   uploader: string;
   profilePictureUrl: string;
-  userId: string;
   tags?: string[];
   liked?: boolean;
   saved?: boolean;
@@ -49,7 +46,6 @@ export interface Meme {
 export interface Comment {
   id?: string;
   memeId: string;
-  userId: string;
   text: string;
   username: string;
   createdAt: string;
@@ -70,13 +66,11 @@ export interface ApiMeme {
   commentsCount: number;
   uploader: string;
   profilePictureUrl: string;
-  userId: string;
   tags?: string[];
 }
 
 export interface ApiComment {
   id?: string;
-  userId: string;
   memeId: string;
   text: string;
   username: string;
@@ -85,38 +79,32 @@ export interface ApiComment {
 
 export interface ApiLike {
   memeId: string;
-  userId: string;
 }
 
 export interface ApiSave {
   memeId: string;
-  userId: string;
 }
 
 
 export interface ApiFollowers{
-  userId?: string;
   username: string;
   profilePictureUrl: string;
   isFollow: boolean;
 }
 
 export interface ApiFollowing{
-  userId?: string;
   username: string;
   profilePictureUrl: string;
   isFollow: boolean;
 }
 
 export interface Followers{
-  userId?: string;
   username: string;
   profilePictureUrl: string;
   isFollow: boolean;
 }
 
 export interface Following{
-  userId?: string;
   username: string;
   profilePictureUrl: string;
   isFollow: boolean;
@@ -124,7 +112,6 @@ export interface Following{
 
 export interface ApiNotifications{
   id: string,
-  userId: string;
   username: string;
   profilePictureUrl: string;
   type: string;
@@ -136,7 +123,6 @@ export interface ApiNotifications{
 
 export interface Notification{
   id: string,
-  userId: string;
   senderUsername?: string;
   profilePictureUrl?: string;
   type: string;
@@ -146,7 +132,6 @@ export interface Notification{
   isRead: boolean;
   memeId?: string;
   targetId?: string;
-  sourceUserId?: string;
   sourceUsername?: string;
   sourceProfilePictureUrl?: string;
 }

@@ -1,71 +1,128 @@
-export const getCurrentAuthUser = () => {
-  // First check the global auth state
-  if (window.__authState) {
-    return window.__authState
-  }
+// export const getCurrentAuthUser = () => {
+//   if (window.__authState) {
+//     return window.__authState
+//   }
   
-  // Then try to get from the auth store synchronously
+//   try {
+//     const { useAuthStore } = require('../store/useAuthStore');
+//     const authState = useAuthStore.getState();
+//     if (authState.user && authState.isAuthenticated) {
+//       const authUser = {
+//         username: authState.user.username || null,
+//         theme: authState.user.theme || null,
+//         isAuthenticated: authState.isAuthenticated
+//       };
+//       updateGlobalAuthState(authUser);
+//       return authUser;
+//     }
+//   } catch (error) {
+//     console.error(error);
+//   }
+
+//   return null
+// }
+
+// declare global {
+//   interface Window {
+//     __authState: {
+//       username: string | null
+//       theme: string | null
+//       isAuthenticated: boolean | null
+//     } | null
+//   }
+// }
+
+// export const updateGlobalAuthState = (authState: {
+//   username: string | null
+//   theme: string | null
+//   isAuthenticated: boolean | null
+// }) => {
+//   window.__authState = authState
+// }
+
+// export const getCurrentTheme = (): string | null => {
+//   if (window.__authState) {
+//     return window.__authState.theme
+//   }
+  
+//   try {
+//     const { useAuthStore } = require('../store/useAuthStore');
+//     const authState = useAuthStore.getState();
+//     if (authState.user && authState.isAuthenticated) {
+//       return authState.user.theme || null;
+//     }
+//   } catch (error) {
+//     console.log(error)
+//   }
+
+//   return null
+// }
+
+// if (typeof window !== 'undefined') {
+//   window.__authState = null
+// }
+
+
+import { useAuthStore } from '../store/useAuthStore';
+
+export const getCurrentAuthUser = () => {
+  if (window.__authState) {
+    return window.__authState;
+  }
+
   try {
-    const { useAuthStore } = require('../store/useAuthStore');
     const authState = useAuthStore.getState();
     if (authState.user && authState.isAuthenticated) {
       const authUser = {
         username: authState.user.username || null,
-        userId: authState.user.userId || null,
         theme: authState.user.theme || null,
-        isAuthenticated: authState.isAuthenticated
+        isAuthenticated: authState.isAuthenticated,
       };
-      // Update global state for immediate access
       updateGlobalAuthState(authUser);
       return authUser;
     }
   } catch (error) {
-    // Ignore error if store is not available
+    console.error(error);
   }
 
-  return null
-}
+  return null;
+};
 
 declare global {
   interface Window {
     __authState: {
-      username: string | null
-      userId: string | null
-      theme: string | null
-      isAuthenticated: boolean | null
-    } | null
+      username: string | null;
+      theme: string | null;
+      isAuthenticated: boolean | null;
+    } | null;
   }
 }
 
 export const updateGlobalAuthState = (authState: {
-  username: string | null
-  userId: string | null
-  theme: string | null
-  isAuthenticated: boolean | null
+  username: string | null;
+  theme: string | null;
+  isAuthenticated: boolean | null;
 }) => {
-  window.__authState = authState
-}
+  window.__authState = authState;
+};
 
 export const getCurrentTheme = (): string | null => {
-  // First check the global auth state
   if (window.__authState) {
-    return window.__authState.theme
+    return window.__authState.theme;
   }
-  
-  // Then try to get from the auth store synchronously
+
   try {
-    const { useAuthStore } = require('../store/useAuthStore');
     const authState = useAuthStore.getState();
     if (authState.user && authState.isAuthenticated) {
       return authState.user.theme || null;
     }
   } catch (error) {
-    // Ignore error if store is not available
+    console.log(error);
   }
 
-  return null
-}
+  return null;
+};
 
 if (typeof window !== 'undefined') {
-  window.__authState = null
+  window.__authState = null;
 }

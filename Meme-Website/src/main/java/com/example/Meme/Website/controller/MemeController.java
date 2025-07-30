@@ -32,9 +32,10 @@ public class MemeController {
     @GetMapping("/memepage/{id}")
     public ResponseEntity<MemeDto> getMemeById(
             @PathVariable String id,
-            @RequestParam(required = false) String userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @RequestParam(required = false, defaultValue = "false") boolean excludeComments) {
 
+        String userId = user.getUserId();
         MemeDto memeDto = memeService.getMemeById(id, userId, excludeComments);
         if (memeDto == null) {
             return ResponseEntity.notFound().build();
@@ -89,7 +90,6 @@ public class MemeController {
         return ResponseEntity.ok(response);
     }
 
-    // using
     @GetMapping("/discover")
     public ResponseEntity<MemeFeedResponse> getDiscoveredMemes(
             @AuthenticationPrincipal UserPrincipal user,
@@ -103,7 +103,6 @@ public class MemeController {
         return ResponseEntity.ok(response);
     }
 
-    // using
     @GetMapping("/feed/main")
     public ResponseEntity<MemeFeedResponse> getMainFeed(
             @AuthenticationPrincipal UserPrincipal user,

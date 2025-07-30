@@ -45,28 +45,25 @@ export function removeFromStorage(key: string): void {
   }
 }
 export function getCurrentUser(): {
-  userId: string;
   username: string;
   profilePicture?: string;
   email?: string;
   name?: string;
 } {
-  // Use global auth context instead of localStorage
   try {
     const { getCurrentAuthUser } = require('./authHelpers');
     const authUser = getCurrentAuthUser();
     
-    if (authUser && authUser.userId && authUser.username) {
+    if (authUser && authUser.username) {
       return {
-        userId: authUser.userId,
         username: authUser.username,
-        profilePicture: undefined, // These fields are not in global auth context
+        profilePicture: undefined,
         email: undefined,
         name: undefined,
       };
     }
   } catch (error) {
-    // Fallback to localStorage if auth helpers are not available
+    console.log(error);
   }
   
   const user = getFromStorage<{

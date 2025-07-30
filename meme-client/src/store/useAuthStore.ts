@@ -7,7 +7,6 @@ import { updateGlobalAuthState } from "../utils/authHelpers";
 export const API_URL = import.meta.env.VITE_API_URL;
 
 interface AuthUser {
-  userId: string;
   username: string;
   email?: string;
   profilePicture?: string;
@@ -33,7 +32,6 @@ interface AuthActions {
   initialize: () => Promise<void>;
   
   getCurrentUser: () => AuthUser | null;
-  getUserId: () => string;
   getUsername: () => string;
   getTheme: () => string;
 }
@@ -60,7 +58,6 @@ const useRawAuthStore = create<AuthStore>()(
         });
         
         const userData: AuthUser = {
-          userId: response.data.userId,
           username: response.data.username,
           email: response.data.email,
           profilePicture: response.data.profilePicture,
@@ -78,7 +75,6 @@ const useRawAuthStore = create<AuthStore>()(
         // Update global auth state
         updateGlobalAuthState({
           username: userData.username,
-          userId: userData.userId,
           theme: userData.theme ?? null,
           isAuthenticated: true
         });
@@ -86,10 +82,9 @@ const useRawAuthStore = create<AuthStore>()(
         try {
           const { useUserStore } = await import("../store/useUserStore");
           const { handleAuthStateChange } = useUserStore.getState() as {
-            handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
+            handleAuthStateChange: (authUser: {username: string } | null) => Promise<void>;
           };
           await handleAuthStateChange({
-            userId: userData.userId,
             username: userData.username
           });
         } catch (profileError) {
@@ -111,7 +106,6 @@ const useRawAuthStore = create<AuthStore>()(
         // Update global auth state
         updateGlobalAuthState({
           username: null,
-          userId: null,
           theme: null,
           isAuthenticated: false
         });
@@ -131,7 +125,6 @@ const useRawAuthStore = create<AuthStore>()(
       // Update global auth state
       updateGlobalAuthState({
         username: user?.username || null,
-        userId: user?.userId || null,
         theme: user?.theme || null,
         isAuthenticated: !!user
       });
@@ -166,7 +159,6 @@ const useRawAuthStore = create<AuthStore>()(
       // Update global auth state
       updateGlobalAuthState({
         username: null,
-        userId: null,
         theme: null,
         isAuthenticated: false
       });
@@ -180,10 +172,6 @@ const useRawAuthStore = create<AuthStore>()(
 
     getCurrentUser: () => {
       return get().user;
-    },
-
-    getUserId: () => {
-      return get().user?.userId || "";
     },
 
     getUsername: () => {

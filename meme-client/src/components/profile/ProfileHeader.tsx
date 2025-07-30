@@ -61,14 +61,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     
     const checkIsFollowing = () => {
       if (!username || isOwnProfile || !Array.isArray(viewedUserFollowers)) return false;
-      return viewedUserFollowers.some((follower) => follower.userId === loggedInUser.userId);
+      return viewedUserFollowers.some((follower) => follower.username === loggedInUser.username);
     };
     
     const checkIsFollowedBy = () => {
       if (!username || isOwnProfile || !Array.isArray(loggedInUserFollowers)) return false;
       return loggedInUserFollowers.some((follower) => {
         const viewedUserFollower = viewedUserFollowers.find(f => f.username === username);
-        return follower.userId === viewedUserFollower?.userId;
+        return follower.username === viewedUserFollower?.username;
       });
     };
     

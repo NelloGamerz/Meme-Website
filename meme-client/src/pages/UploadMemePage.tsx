@@ -30,8 +30,6 @@ interface MemeTag {
 }
 
 export const UploadMemePage: React.FC = () => {
-  // const getLoggedInUser = useUserStore.use.getLoggedInUser();
-  // const loggedInUser = getLoggedInUser();
 
   const [currentStep, setCurrentStep] = useState<UploadStep>("select");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

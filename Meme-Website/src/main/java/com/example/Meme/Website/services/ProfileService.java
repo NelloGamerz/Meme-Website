@@ -122,7 +122,6 @@ public class ProfileService {
         userModel currentUser = optionalCurrentUser.get();
 
         Map<String, Object> userProfile = new HashMap<>();
-        userProfile.put("userId", profileUser.getUserId());
         userProfile.put("username", profileUser.getUsername());
         userProfile.put("profilePictureUrl", profileUser.getProfilePictureUrl());
         userProfile.put("profileBannerUrl", profileUser.getProfileBannerUrl());

@@ -123,7 +123,6 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
           const newComment: Comment = {
             id: commentId.toString(),
             memeId: data.memeId as string,
-            userId: data.userId as string,
             text: data.text as string,
             username: data.username as string,
             createdAt: data.createdAt as string,
@@ -140,7 +139,7 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
             }
             
             const currentUser = getCurrentAuthUser();
-            if (currentUser?.userId && currentUser.userId !== data.userId) {
+            if (currentUser?.username && currentUser.username !== data.username) {
               import('react-hot-toast').then(toast => {
                 toast.default.success(`${data.username} commented: ${data.text}`);
               });
@@ -153,7 +152,7 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
       const likeHandler = useWebSocketStore.getState().registerMessageHandler('LIKE', (data) => {
         if (data.memeId) {
           const currentUser = getCurrentAuthUser();
-          const isCurrentUserAction = currentUser?.userId && data.userId === currentUser.userId;
+          const isCurrentUserAction = currentUser?.username && data.username === currentUser.username;
           
           const memeStore = useMemeContentStore.getState() as MemeContentStore;
           
@@ -178,7 +177,7 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
       const saveHandler = useWebSocketStore.getState().registerMessageHandler('SAVE', (data) => {
         if (data.memeId) {
           const currentUser = getCurrentAuthUser();
-          const isCurrentUserAction = currentUser?.userId && data.userId === currentUser.userId;
+          const isCurrentUserAction = currentUser?.username && data.username === currentUser.username;
           
           const memeStore = useMemeContentStore.getState() as MemeContentStore;
 
@@ -212,9 +211,7 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
           message: data.message as string,
           createdAt: new Date(data.createdAt as string),
           isRead: false,
-          userId: data.userId as string,
           targetId: data.targetId as string,
-          sourceUserId: data.sourceUserId as string,
           sourceUsername: data.sourceUsername as string,
           sourceProfilePictureUrl: data.sourceProfilePictureUrl as string,
         });
@@ -225,19 +222,18 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
           const userStore = useUserStore.getState();
           
           const currentUser = getCurrentAuthUser();
-          const isCurrentUserProfile = currentUser?.userId && data.followingUserId === currentUser.userId;
-          const isCurrentUserAction = currentUser?.userId && data.followerId === currentUser.userId;
+          const isCurrentUserProfile = currentUser?.username && data.followingUsername === currentUser.username;
+          const isCurrentUserAction = currentUser?.username && data.followerUsername === currentUser.username;
           
           if (isCurrentUserProfile) {
             if (data.isFollowing) {
               userStore.addFollower({
-                userId: data.followerId as string,
                 username: data.followerUsername as string,
                 profilePictureUrl: data.profilePictureUrl as string,
                 isFollow: true
               });
             } else {
-              userStore.removeFollower(data.followerId as string);
+              userStore.removeFollower(data.followerUsername as string);
             }
           } else if (isCurrentUserAction) {
           }

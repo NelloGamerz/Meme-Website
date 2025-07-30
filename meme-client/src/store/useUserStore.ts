@@ -5,7 +5,6 @@ import api from "../hooks/api";
 import type { ApiMeme, Followers, Following, Meme } from "../types/mems";
 
 interface UserProfile {
-  userId: string;
   username: string;
   profilePictureUrl: string;
   profileBannerUrl: string;
@@ -23,7 +22,6 @@ interface UserProfile {
 }
 
 interface CachedUserProfile {
-  userId: string;
   username: string;
   profilePictureUrl: string;
   profileBannerUrl: string;
@@ -36,16 +34,14 @@ interface CachedUserProfile {
 }
 
 let currentAuthUser: {
-  userId: string;
   username: string;
 } | null = null;
 
-const setCurrentAuthUser = (authUser: { userId: string; username: string } | null) => {
+const setCurrentAuthUser = (authUser: { username: string } | null) => {
   currentAuthUser = authUser;
 };
 
 const getCurrentAuthUser = (): {
-  userId: string;
   username: string;
   profilePicture?: string;
   profileBanner?: string;
@@ -57,7 +53,6 @@ const getCurrentAuthUser = (): {
     const authUser = useAuthStore.getState().getCurrentUser();
     if (authUser) {
       return {
-        userId: authUser.userId,
         username: authUser.username,
         profilePicture: authUser.profilePicture,
         name: authUser.name,
@@ -69,13 +64,11 @@ const getCurrentAuthUser = (): {
   
   if (currentAuthUser) {
     return {
-      userId: currentAuthUser.userId,
       username: currentAuthUser.username,
     };
   }
   
   return {
-    userId: "",
     username: "",
   };
 };
@@ -135,8 +128,8 @@ interface UserState {
 
 interface UserActions {
   fetchUserProfile: (username?: string) => Promise<void>;
-  updateProfilePicture: (file: File, userId: string) => Promise<void>;
-  // updateUserName: (userId: string, newUsername: string) => Promise<void>;
+  updateProfilePicture: (file: File, username: string) => Promise<void>;
+  // updateUserName: (username: string, newUsername: string) => Promise<void>;
   updateUserProfile: (
     data: {
       username?: string;
@@ -145,11 +138,10 @@ interface UserActions {
     }
   ) => Promise<void>;
 
-  setAuthUser: (authUser: { userId: string; username: string } | null) => void;
-  handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
+  setAuthUser: (authUser: { username: string } | null) => void;
+  handleAuthStateChange: (authUser: { username: string } | null) => Promise<void>;
 
   getLoggedInUser: () => {
-    userId: string;
     username: string;
     profilePicture?: string;
     profileBanner?: string;
@@ -159,7 +151,7 @@ interface UserActions {
 
   handleFollowToggle: (isFollowing: boolean) => Promise<void>;
   addFollower: (follower: Followers) => void;
-  removeFollower: (userId: string) => void;
+  removeFollower: (username: string) => void;
   fetchFollowData: (
     type: "followers" | "following",
     offset: number,
@@ -175,13 +167,11 @@ interface UserActions {
   }>;
 
   updateFollowingState: (
-    followingUserId: string,
     followingUsername: string,
     isFollowing: boolean,
     profilePictureUrl: string
   ) => void;
   updateFollowerState: (
-    followerId: string,
     followerUsername: string,
     isFollowing: boolean,
     profilePictureUrl: string
@@ -299,14 +289,14 @@ const useRawUserStore = create<UserStore>()(
         : state.loggedInUserMemeList;
     },
 
-    setAuthUser: (authUser: { userId: string; username: string } | null) => {
+    setAuthUser: (authUser: { username: string } | null) => {
       setCurrentAuthUser(authUser);
       set((state) => {
         state.loggedInUserName = authUser?.username || "";
       });
     },
 
-    handleAuthStateChange: async (authUser: { userId: string; username: string } | null) => {
+    handleAuthStateChange: async (authUser: { username: string } | null) => {
       setCurrentAuthUser(authUser);
       set((state) => {
         state.loggedInUserName = authUser?.username || "";
@@ -384,7 +374,6 @@ const useRawUserStore = create<UserStore>()(
         const isOwnProfile = !username || username === currentUser.username;
 
         const userProfile: UserProfile = {
-          userId: response.data.userId || "",
           username: response.data.username,
           profilePictureUrl: response.data.profilePictureUrl,
           profileBannerUrl: response.data.profileBannerUrl,
@@ -445,7 +434,7 @@ const useRawUserStore = create<UserStore>()(
       }
     },
 
-    updateProfilePicture: async (file: File, userId: string) => {
+    updateProfilePicture: async (file: File, username: string) => {
       try {
         set((state) => {
           state.isLoading = true;
@@ -454,7 +443,7 @@ const useRawUserStore = create<UserStore>()(
 
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("userId", userId);
+        formData.append("username", username);
 
         const response = await api.post("/profile/profile-picture", formData, {
           headers: {
@@ -481,7 +470,7 @@ const useRawUserStore = create<UserStore>()(
           state.isLoading = false;
 
           state.loggedInUserMemeList.forEach((meme) => {
-            if (meme.userId === userId) {
+            if (meme.uploader === username) {
               meme.profilePictureUrl = response.data.profilePictureUrl;
             }
           });
@@ -623,7 +612,7 @@ const useRawUserStore = create<UserStore>()(
             }
 
             // Also update viewed user profile if it's the same user
-            if (state.viewedUserProfile && state.viewedUserProfile.userId === state.loggedInUserProfile?.userId) {
+            if (state.viewedUserProfile && state.viewedUserProfile.username === state.loggedInUserProfile?.username) {
               state.viewedUserProfile.username = newUsername;
               state.viewedUserName = newUsername;
             }
@@ -643,7 +632,6 @@ const useRawUserStore = create<UserStore>()(
             
             state.profileCache[newUsername] = state.profileCache[newUsername] || {
               profile: {
-                userId: state.loggedInUserProfile?.userId || "",
                 username: newUsername,
                 profilePictureUrl: response.data.profilePictureUrl || state.loggedInUserProfilePictureUrl,
                 profileBannerUrl: response.data.profileBannerUrl || state.loggedInUserProfileBannerUrl,
@@ -655,7 +643,7 @@ const useRawUserStore = create<UserStore>()(
             };
 
             state.loggedInUserMemeList.forEach((meme) => {
-              if (meme.userId === state.loggedInUserProfile?.userId) {
+              if (meme.uploader === state.loggedInUserProfile?.username) {
                 meme.uploader = newUsername;
               }
             });
@@ -671,7 +659,7 @@ const useRawUserStore = create<UserStore>()(
             }
 
             // Also update viewed user profile if it's the same user
-            if (state.viewedUserProfile && state.viewedUserProfile.userId === state.loggedInUserProfile?.userId) {
+            if (state.viewedUserProfile && state.viewedUserProfile.username === state.loggedInUserProfile?.username) {
               state.viewedUserProfile.profilePictureUrl = response.data.profilePictureUrl;
               state.viewedUserProfilePictureUrl = response.data.profilePictureUrl;
             }
@@ -683,7 +671,7 @@ const useRawUserStore = create<UserStore>()(
             }
 
             state.loggedInUserMemeList.forEach((meme) => {
-              if (meme.userId === state.loggedInUserProfile?.userId) {
+              if (meme.uploader === state.loggedInUserProfile?.username) {
                 meme.profilePictureUrl = response.data.profilePictureUrl;
               }
             });
@@ -698,7 +686,7 @@ const useRawUserStore = create<UserStore>()(
             }
 
             // Also update viewed user profile if it's the same user
-            if (state.viewedUserProfile && state.viewedUserProfile.userId === state.loggedInUserProfile?.userId) {
+            if (state.viewedUserProfile && state.viewedUserProfile.username === state.loggedInUserProfile?.username) {
               state.viewedUserProfile.profileBannerUrl = response.data.profileBannerUrl;
               state.viewedUserProfileBannerUrl = response.data.profileBannerUrl;
             }
@@ -736,8 +724,8 @@ const useRawUserStore = create<UserStore>()(
         const user = getCurrentAuthUser();
         const targetUsername = get().viewedUserName;
 
-        if (!user.userId || !targetUsername) {
-          throw new Error("Missing user ID or target username");
+        if (!user.username || !targetUsername) {
+          throw new Error("Missing username or target username");
         }
 
         set((state) => {
@@ -745,20 +733,10 @@ const useRawUserStore = create<UserStore>()(
           state.error = null;
         });
 
-        let targetUserId: string;
-        const state = get();
-
-        if (state.profileCache[targetUsername]) {
-          targetUserId = state.profileCache[targetUsername].profile.userId;
-        } else {
-          const targetUserResponse = await api.get(`/users/${targetUsername}`);
-          targetUserId = targetUserResponse.data.userId;
-        }
-
         const { useWebSocketStore } = await import("../hooks/useWebSockets");
         const success = useWebSocketStore
           .getState()
-          .sendFollowRequest(targetUserId, targetUsername, isFollowing);
+          .sendFollowRequest(targetUsername, targetUsername, isFollowing);
 
         if (!success) {
           throw new Error("Failed to send WebSocket follow request");
@@ -780,7 +758,7 @@ const useRawUserStore = create<UserStore>()(
 
       set((state) => {
         const followerExists = state.loggedInUserFollowers.some(
-          (f) => f.userId === follower.userId
+          (f) => f.username === follower.username
         );
 
         if (!followerExists) {
@@ -799,12 +777,12 @@ const useRawUserStore = create<UserStore>()(
       });
     },
 
-    removeFollower: (userId: string) => {
+    removeFollower: (username: string) => {
       const user = getCurrentAuthUser();
 
       set((state) => {
         const followerExists = state.loggedInUserFollowers.some(
-          (f) => f.userId === userId
+          (f) => f.username === username
         );
 
         if (followerExists) {
@@ -813,7 +791,7 @@ const useRawUserStore = create<UserStore>()(
             state.loggedInUserFollowersCount - 1
           );
           state.loggedInUserFollowers = state.loggedInUserFollowers.filter(
-            (f) => f.userId !== userId
+            (f) => f.username !== username
           );
 
           if (user.username && state.profileCache[user.username]) {
@@ -830,7 +808,7 @@ const useRawUserStore = create<UserStore>()(
             );
             state.loggedInUserProfile.followers =
               state.loggedInUserProfile.followers.filter(
-                (f) => f.userId !== userId
+                (f) => f.username !== username
               );
           }
         }
@@ -838,7 +816,6 @@ const useRawUserStore = create<UserStore>()(
     },
 
     updateFollowingState: (
-      followingUserId: string,
       followingUsername: string,
       isFollowing: boolean,
       profilePictureUrl: string
@@ -847,13 +824,12 @@ const useRawUserStore = create<UserStore>()(
       set((state) => {
         if (isFollowing) {
           const alreadyFollowing = state.loggedInUserFollowing.some(
-            (f) => f.userId === followingUserId
+            (f) => f.username === followingUsername
           );
 
           if (!alreadyFollowing) {
             state.loggedInUserFollowingCount += 1;
             state.loggedInUserFollowing.push({
-              userId: followingUserId,
               username: followingUsername,
               profilePictureUrl: profilePictureUrl,
               isFollow: true,
@@ -877,7 +853,7 @@ const useRawUserStore = create<UserStore>()(
             state.loggedInUserFollowingCount - 1
           );
           state.loggedInUserFollowing = state.loggedInUserFollowing.filter(
-            (following) => following.userId !== followingUserId
+            (following) => following.username !== followingUsername
           );
 
           if (state.loggedInUserProfile) {
@@ -896,7 +872,6 @@ const useRawUserStore = create<UserStore>()(
     },
 
     updateFollowerState: (
-      followerId: string,
       followerUsername: string,
       isFollowing: boolean,
       profilePictureUrl: string
@@ -904,13 +879,12 @@ const useRawUserStore = create<UserStore>()(
       set((state) => {
         if (isFollowing) {
           const alreadyFollower = state.loggedInUserFollowers.some(
-            (f) => f.userId === followerId
+            (f) => f.username === followerUsername
           );
 
           if (!alreadyFollower) {
             state.loggedInUserFollowersCount += 1;
             state.loggedInUserFollowers.push({
-              userId: followerId,
               username: followerUsername,
               profilePictureUrl: profilePictureUrl,
               isFollow: true,
@@ -934,7 +908,7 @@ const useRawUserStore = create<UserStore>()(
             state.loggedInUserFollowersCount - 1
           );
           state.loggedInUserFollowers = state.loggedInUserFollowers.filter(
-            (follower) => follower.userId !== followerId
+            (follower) => follower.username !== followerUsername
           );
 
           if (state.loggedInUserProfile) {

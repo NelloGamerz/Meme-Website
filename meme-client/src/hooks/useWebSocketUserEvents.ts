@@ -5,7 +5,7 @@ import { getCurrentAuthUser } from '../utils/authHelpers';
 
 const getCurrentUser = () => {
   const authUser = getCurrentAuthUser();
-  return authUser ? { userId: authUser.userId, username: authUser.username } : { userId: '', username: '' };
+  return authUser ? { username: authUser.username } : { username: '' };
 };
 
 const getUserStore = async () => {
@@ -25,20 +25,17 @@ export const useWebSocketFollowEvents = () => {
       const set = userStore.setState;
 
       const {
-        followerId,
         followerUsername,
-        followingUserId,
         followingUsername,
         isFollowing,
         profilePictureUrl
       } = message;
 
-      const isCurrentUserFollower = followerId === currentUser.userId;
-      const isCurrentUserFollowed = followingUserId === currentUser.userId;
+      const isCurrentUserFollower = followerUsername === currentUser.username;
+      const isCurrentUserFollowed = followingUsername === currentUser.username;
 
       if (isCurrentUserFollower) {
         userStore.getState().updateFollowingState(
-          followingUserId as string,
           followingUsername as string,
           isFollowing as boolean,
           (profilePictureUrl as string) || ""
@@ -47,7 +44,6 @@ export const useWebSocketFollowEvents = () => {
 
       if (isCurrentUserFollowed) {
         userStore.getState().updateFollowerState(
-          followerId as string,
           followerUsername as string,
           isFollowing as boolean,
           (profilePictureUrl as string) || ""
