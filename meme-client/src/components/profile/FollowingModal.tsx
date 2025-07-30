@@ -62,7 +62,7 @@ export const FollowingModal: React.FC<FollowingModalProps> = ({
               <ul className="divide-y divide-gray-200">
                 {filteredFollowing.map((following) => (
                   <li
-                    key={following.userId}
+                    key={following.username}
                     className="py-3 flex items-center hover:bg-gray-50 rounded-lg px-2 cursor-pointer"
                     onClick={() => onNavigateToProfile(following.username)}
                   >
@@ -71,7 +71,7 @@ export const FollowingModal: React.FC<FollowingModalProps> = ({
                         <img
                           className="h-10 w-10 rounded-full object-cover"
                           src={following.profilePictureUrl || "/placeholder.svg"}
-                          alt={following.userId}
+                          alt={following.username}
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
