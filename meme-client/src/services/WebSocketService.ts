@@ -1,3 +1,5 @@
+import toast from 'react-hot-toast';
+
 const WS_URL = import.meta.env.VITE_WEBSOCKET_URL;
 
 export type WebSocketMessageType = 
@@ -171,11 +173,9 @@ class WebSocketService {
     
     if (event.code === 1000) {
     } else if (event.code === 1008) {      
-      import('react-hot-toast').then(toast => {
-        toast.default.error("Too many WebSocket requests. Connection will retry automatically.", {
-          duration: 5000,
-          id: 'websocket-rate-limit-error',
-        });
+      toast.error("Too many WebSocket requests. Connection will retry automatically.", {
+        duration: 5000,
+        id: 'websocket-rate-limit-error',
       });
       
       setTimeout(() => this.reconnect(), 10000); // 10 seconds delay
@@ -201,11 +201,9 @@ class WebSocketService {
   private handleError = (event: Event): void => {
     const errorMessage = event.toString();
     if (errorMessage.includes('429') || errorMessage.includes('rate') || errorMessage.includes('limit')) {
-      import('react-hot-toast').then(toast => {
-        toast.default.error("Too many WebSocket requests. Please wait before reconnecting.", {
-          duration: 5000,
-          id: 'websocket-rate-limit-error',
-        });
+      toast.error("Too many WebSocket requests. Please wait before reconnecting.", {
+        duration: 5000,
+        id: 'websocket-rate-limit-error',
       });
     }
   };
@@ -243,7 +241,7 @@ class WebSocketService {
       try {
         this.client.close(1000, "User logged out");
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     }
     

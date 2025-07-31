@@ -10,11 +10,21 @@ import { getCurrentTheme } from "../utils/authHelpers";
 
 export const ForgotPasswordForm: React.FC = () => {
   useEffect(() => {
-    const originalTheme = getCurrentTheme();
+    let originalTheme: string | null = null;
 
-    // Force light theme for auth pages without updating global context
-    document.documentElement.classList.remove("dark", "system");
-    document.documentElement.classList.add("light");
+    const initTheme = async () => {
+      try {
+        originalTheme = await getCurrentTheme();
+      } catch (error) {
+        console.error('Failed to get current theme:', error);
+      }
+
+      // Force light theme for auth pages without updating global context
+      document.documentElement.classList.remove("dark", "system");
+      document.documentElement.classList.add("light");
+    };
+
+    initTheme();
 
     return () => {
       // Restore original theme classes without updating global context

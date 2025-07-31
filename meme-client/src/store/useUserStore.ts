@@ -10,6 +10,7 @@ interface UserProfile {
   profileBannerUrl: string;
   followersCount: number;
   followingCount: number;
+  uploadCount: number;
   userCreated: Date;
   followers: Followers[];
   following: Following[];
@@ -27,6 +28,7 @@ interface CachedUserProfile {
   profileBannerUrl: string;
   followersCount: number;
   followingCount: number;
+  uploadCount: number;
   userCreated: Date;
   followed?: boolean;
   followback?: boolean;
@@ -82,6 +84,7 @@ interface UserState {
   loggedInUserCreated: Date;
   loggedInUserFollowersCount: number;
   loggedInUserFollowingCount: number;
+  loggedInUserUploadCount: number;
   loggedInUserFollowers: Followers[];
   loggedInUserFollowing: Following[];
   loggedInUserLikedMemes: Meme[];
@@ -95,6 +98,7 @@ interface UserState {
   viewedUserCreated: Date;
   viewedUserFollowersCount: number;
   viewedUserFollowingCount: number;
+  viewedUserUploadCount: number;
   viewedUserFollowers: Followers[];
   viewedUserFollowing: Following[];
   viewedUserLikedMemes: Meme[];
@@ -129,7 +133,6 @@ interface UserState {
 interface UserActions {
   fetchUserProfile: (username?: string) => Promise<void>;
   updateProfilePicture: (file: File, username: string) => Promise<void>;
-  // updateUserName: (username: string, newUsername: string) => Promise<void>;
   updateUserProfile: (
     data: {
       username?: string;
@@ -195,6 +198,7 @@ const useRawUserStore = create<UserStore>()(
     loggedInUserCreated: new Date(),
     loggedInUserFollowersCount: 0,
     loggedInUserFollowingCount: 0,
+    loggedInUserUploadCount: 0,
     loggedInUserFollowers: [],
     loggedInUserFollowing: [],
     loggedInUserLikedMemes: [],
@@ -208,6 +212,7 @@ const useRawUserStore = create<UserStore>()(
     viewedUserCreated: new Date(),
     viewedUserFollowersCount: 0,
     viewedUserFollowingCount: 0,
+    viewedUserUploadCount: 0,
     viewedUserFollowers: [],
     viewedUserFollowing: [],
     viewedUserLikedMemes: [],
@@ -324,6 +329,7 @@ const useRawUserStore = create<UserStore>()(
         state.viewedUserCreated = new Date();
         state.viewedUserFollowersCount = 0;
         state.viewedUserFollowingCount = 0;
+        state.viewedUserUploadCount = 0;
         state.viewedUserFollowers = [];
         state.viewedUserFollowing = [];
         state.viewedUserLikedMemes = [];
@@ -351,7 +357,6 @@ const useRawUserStore = create<UserStore>()(
           state.error = null;
         });
 
-        // Determine the API endpoint based on whether username is provided
         const endpoint = username ? `/profile/${username}` : '/profile';
         const response = await api.get(endpoint);
 
@@ -369,16 +374,16 @@ const useRawUserStore = create<UserStore>()(
             }
           ) || [];
 
-        // Determine if this is the user's own profile
         const currentUser = getCurrentAuthUser();
         const isOwnProfile = !username || username === currentUser.username;
-
+        
         const userProfile: UserProfile = {
           username: response.data.username,
           profilePictureUrl: response.data.profilePictureUrl,
           profileBannerUrl: response.data.profileBannerUrl,
           followersCount: response.data.followersCount,
           followingCount: response.data.followingCount,
+          uploadCount: response.data.uploadCount || mappedMemeList.length,
           userCreated: new Date(response.data.userCreated),
           followers: response.data.followers || [],
           following: response.data.following || [],
@@ -392,7 +397,6 @@ const useRawUserStore = create<UserStore>()(
 
         set((state) => {
           if (isOwnProfile) {
-            // Update logged in user profile data
             state.loggedInUserProfile = userProfile;
             state.isLoggedInUserProfileLoaded = true;
             state.loggedInUserProfilePictureUrl = userProfile.profilePictureUrl;
@@ -401,6 +405,7 @@ const useRawUserStore = create<UserStore>()(
             state.loggedInUserCreated = userProfile.userCreated;
             state.loggedInUserFollowersCount = userProfile.followersCount;
             state.loggedInUserFollowingCount = userProfile.followingCount;
+            state.loggedInUserUploadCount = userProfile.uploadCount;
             state.loggedInUserFollowers = userProfile.followers;
             state.loggedInUserFollowing = userProfile.following;
             state.loggedInUserLikedMemes = userProfile.likedMemes;
@@ -408,7 +413,6 @@ const useRawUserStore = create<UserStore>()(
             state.loggedInUserMemeList = userProfile.memeList;
           }
 
-          // Always set viewed user profile data (for both own profile and other users)
           state.viewedUserProfile = userProfile;
           state.viewedUserProfilePictureUrl = userProfile.profilePictureUrl;
           state.viewedUserProfileBannerUrl = userProfile.profileBannerUrl;
@@ -416,6 +420,7 @@ const useRawUserStore = create<UserStore>()(
           state.viewedUserCreated = userProfile.userCreated;
           state.viewedUserFollowersCount = userProfile.followersCount;
           state.viewedUserFollowingCount = userProfile.followingCount;
+          state.viewedUserUploadCount = userProfile.uploadCount;
           state.viewedUserFollowers = userProfile.followers;
           state.viewedUserFollowing = userProfile.following;
           state.viewedUserLikedMemes = userProfile.likedMemes;
@@ -570,15 +575,12 @@ const useRawUserStore = create<UserStore>()(
         if (profilePictureUrl) payload.profilePictureUrl = profilePictureUrl;
         if (profileBannerUrl) payload.profileBannerUrl = profileBannerUrl;
 
-        // Check if payload is empty
         if (Object.keys(payload).length === 0) {
-          console.log("No changes to update");
           return;
         }
 
         const response = await api.patch(`/upload/profile`, payload);
 
-        // Update auth store with new user data
         try {
           const { useAuthStore } = require("./useAuthStore");
           const currentAuthUser = useAuthStore.getState().getCurrentUser();
@@ -594,7 +596,6 @@ const useRawUserStore = create<UserStore>()(
               updatedAuthUser.profilePicture = response.data.profilePictureUrl;
             }
             
-            // Update the auth store
             useAuthStore.getState().setUser(updatedAuthUser);
           }
         } catch (error) {
@@ -611,7 +612,6 @@ const useRawUserStore = create<UserStore>()(
               state.loggedInUserProfile.username = newUsername;
             }
 
-            // Also update viewed user profile if it's the same user
             if (state.viewedUserProfile && state.viewedUserProfile.username === state.loggedInUserProfile?.username) {
               state.viewedUserProfile.username = newUsername;
               state.viewedUserName = newUsername;
@@ -637,6 +637,7 @@ const useRawUserStore = create<UserStore>()(
                 profileBannerUrl: response.data.profileBannerUrl || state.loggedInUserProfileBannerUrl,
                 followersCount: state.loggedInUserFollowersCount,
                 followingCount: state.loggedInUserFollowingCount,
+                uploadCount: state.loggedInUserUploadCount,
                 userCreated: state.loggedInUserCreated,
               },
               timestamp: Date.now(),
@@ -658,7 +659,6 @@ const useRawUserStore = create<UserStore>()(
                 response.data.profilePictureUrl;
             }
 
-            // Also update viewed user profile if it's the same user
             if (state.viewedUserProfile && state.viewedUserProfile.username === state.loggedInUserProfile?.username) {
               state.viewedUserProfile.profilePictureUrl = response.data.profilePictureUrl;
               state.viewedUserProfilePictureUrl = response.data.profilePictureUrl;
@@ -685,7 +685,6 @@ const useRawUserStore = create<UserStore>()(
                 response.data.profileBannerUrl;
             }
 
-            // Also update viewed user profile if it's the same user
             if (state.viewedUserProfile && state.viewedUserProfile.username === state.loggedInUserProfile?.username) {
               state.viewedUserProfile.profileBannerUrl = response.data.profileBannerUrl;
               state.viewedUserProfileBannerUrl = response.data.profileBannerUrl;
@@ -1009,7 +1008,6 @@ const useRawUserStore = create<UserStore>()(
           state.error = null;
         });
 
-        // Determine the API endpoint based on whether username is provided
         const endpoint = username 
           ? `/profile/${username}/FollowType/${type}?offset=${offset}&limit=${limit}`
           : `/profile/FollowType/${type}?offset=${offset}&limit=${limit}`;

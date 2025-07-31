@@ -6,23 +6,32 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { getCurrentTheme, updateGlobalAuthState, getCurrentAuthUser } from "../utils/authHelpers";
+import { initializeTheme, getInMemoryTheme } from "../store/useSettingsStore";
+import { saveThemeToIndexedDB } from "../utils/indexedDBCache";
 
 type ThemeType = "light" | "dark";
 
 interface ThemeContextType {
   theme: ThemeType;
-  setTheme: (theme: ThemeType) => void;
-  toggleTheme: () => void;
+  setTheme: (theme: ThemeType) => Promise<void>;
+  toggleTheme: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-const getInitialTheme = (): ThemeType => {
+const getInitialTheme = async (): Promise<ThemeType> => {
   if (typeof window === "undefined") return "light";
 
-  const savedTheme = getCurrentTheme();
-  if (savedTheme && ["light", "dark"].includes(savedTheme)) {
-    return savedTheme as ThemeType;
+  try {
+    // Initialize theme in memory if not already done
+    await initializeTheme();
+    
+    // Get theme from in-memory storage (instant access)
+    const savedTheme = getInMemoryTheme();
+    if (savedTheme && ["light", "dark"].includes(savedTheme)) {
+      return savedTheme as ThemeType;
+    }
+  } catch (error) {
+    console.error("Failed to get initial theme:", error);
   }
 
   return "light";
@@ -31,7 +40,16 @@ const getInitialTheme = (): ThemeType => {
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [theme, setThemeState] = useState<ThemeType>(getInitialTheme);
+  const [theme, setThemeState] = useState<ThemeType>("light");
+
+  // Initialize theme from IndexedDB
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const initialTheme = await getInitialTheme();
+      setThemeState(initialTheme);
+    };
+    initializeTheme();
+  }, []);
 
   const applyTheme = useCallback((themeValue: ThemeType) => {
     if (typeof window === "undefined") return;
@@ -48,17 +66,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const setTheme = useCallback(
-    (newTheme: ThemeType) => {
+    async (newTheme: ThemeType) => {
       applyTheme(newTheme);
       setThemeState(newTheme);
       
-      const authUser = getCurrentAuthUser();
-      if (authUser) {
-        updateGlobalAuthState({
-          username: authUser.username,
-          theme: newTheme,
-          isAuthenticated: authUser.isAuthenticated
-        });
+      // Save theme to IndexedDB
+      try {
+        await saveThemeToIndexedDB(newTheme, false);
+      } catch (error) {
+        console.error("Failed to save theme to IndexedDB:", error);
       }
       
       setTimeout(() => {
@@ -78,9 +94,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
     return () => clearTimeout(timeoutId);
   }, [theme, applyTheme]);
 
-  const toggleTheme = useCallback(() => {
+  const toggleTheme = useCallback(async () => {
     const nextTheme: ThemeType = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
+    await setTheme(nextTheme);
   }, [theme, setTheme]);
 
   const contextValue = {

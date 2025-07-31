@@ -15,18 +15,7 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setMaxAge(maxAge);
-
         response.addCookie(cookie);
-
-        StringBuilder cookieHeader = new StringBuilder();
-        cookieHeader.append(name).append("=").append(value)
-                .append("; Path=/")
-                .append("; Max-Age=").append(maxAge)
-                .append("; Secure")
-                .append("; HttpOnly")
-                .append("; SameSite=None");
-
-        response.setHeader("Set-Cookie", cookieHeader.toString());
     }
 
     public void deleteCookie(HttpServletResponse response, String name) {

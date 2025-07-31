@@ -67,7 +67,7 @@ public class MemeBatchScheduler {
             }
 
             if (!uploadUpdates.isEmpty()) {
-                BulkWriteResult result = mongoTemplate.getCollection("userModel").bulkWrite(uploadUpdates);
+                BulkWriteResult result = mongoTemplate.getCollection("Users").bulkWrite(uploadUpdates);
                 log.info("📊 Updated uploadCount for {} users", result.getModifiedCount());
             }
         }

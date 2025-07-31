@@ -73,7 +73,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     updateGlobalAuthState({
       username: authData.username,
       isAuthenticated: authData.isAuthenticated,
-      theme: authData.theme,
     })
 
     if (authData.authUser) {
@@ -81,7 +80,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setCurrentAuthUser(null)
     }
-  }, [authData.username, authData.isAuthenticated, authData.authUser, authData.theme])
+  }, [authData.username, authData.isAuthenticated, authData.authUser])
 
   return (
     <AuthContext.Provider value={authData}>

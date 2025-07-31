@@ -5,8 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,11 +18,10 @@ import com.example.Meme.Website.dto.AuthRequest;
 import com.example.Meme.Website.dto.AuthResponse;
 import com.example.Meme.Website.dto.PasswordResetRequest;
 import com.example.Meme.Website.dto.RegisterResponse;
+import com.example.Meme.Website.models.UserPrincipal;
 import com.example.Meme.Website.models.userModel;
 import com.example.Meme.Website.repository.userRepository;
-import com.example.Meme.Website.repository.userSettingsRepository;
 import com.example.Meme.Website.services.AuthService;
-import com.example.Meme.Website.models.userSettings;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,8 +38,7 @@ public class AuthController {
 
     @Autowired
     private CookieUtil cookieUtil;
-    @Autowired
-    private userSettingsRepository userSettingsRepository;
+
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody userModel user, HttpServletResponse response) {
@@ -50,7 +47,7 @@ public class AuthController {
         RegisterResponse responseBody = result.getBody();
 
         if (response.getStatus() == HttpServletResponse.SC_CREATED && responseBody != null) {
-            cookieUtil.addCookie(response, "access_token", responseBody.getToken(), 60); // 1 hour
+            cookieUtil.addCookie(response, "access_token", responseBody.getToken(), 60);
             cookieUtil.addCookie(response, "username", user.getUsername(), 60 * 60 * 24 * 30);
         }
 
@@ -61,12 +58,11 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody AuthRequest request, HttpServletResponse response) {
         AuthResponse authResponse = authService.authenticate(request);
 
-        cookieUtil.addCookie(response, "access_token", authResponse.getToken(), 5 * 60); // 1 hour
+        cookieUtil.addCookie(response, "access_token", authResponse.getToken(), 5 * 60);
         cookieUtil.addCookie(response, "username", authResponse.getUsername(), 60 * 60 * 24 * 30);
 
         return ResponseEntity.ok(Map.of(
-                "username", authResponse.getUsername(),
-                "userId", authResponse.getUserId()));
+                "username", authResponse.getUsername()));
 
     }
 
@@ -80,25 +76,13 @@ public class AuthController {
         return authService.resetPassword(request);
     }
 
+
+
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        userModel user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        String userId = user.getUserId();
-
-        String theme = userSettingsRepository.findByUserId(userId)
-                .map(userSettings::getTheme)
-                .filter(t -> t != null && !t.isBlank())
-                .orElse("light");
-
-        return ResponseEntity.ok(Map.of(
-                "username", user.getUsername(),
-                "userId", userId,
-                "theme", theme));
-    }
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request,
+            @AuthenticationPrincipal UserPrincipal user){
+                return ResponseEntity.ok(Map.of("username", user.getUsername()));
+            }
 
     @GetMapping("/check-username")
     public ResponseEntity<Map<String, Boolean>> checkUsernameAvailability(@RequestParam String username) {

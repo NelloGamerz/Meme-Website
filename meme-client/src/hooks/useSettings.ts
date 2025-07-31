@@ -15,6 +15,7 @@ export const useSettings = () => {
   const updateThemeLocally = useSettingsStore.use.updateThemeLocally();
   const fetchSettings = useSettingsStore.use.fetchSettings();
   const updateSettings = useSettingsStore.use.updateSettings();
+  const syncPendingChanges = useSettingsStore.use.syncPendingChanges();
   const initialize = useSettingsStore.use.initialize();
   const setError = useSettingsStore.use.setError();
 
@@ -38,6 +39,7 @@ export const useSettings = () => {
     updateThemeLocally,
     fetchSettings,
     updateSettings,
+    syncPendingChanges,
     initialize,
     setError,
     

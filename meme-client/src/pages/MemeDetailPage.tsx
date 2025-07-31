@@ -489,12 +489,6 @@ const MemeDetailPage: React.FC = () => {
     };
   }, [isCommentModalOpen]);
 
-  // const handleLoadMore = () => {
-  //   if (hasMoreMemesRef.current && !isLoadingMoreMemesRef.current) {
-  //     fetchMoreMemes(currentPageRef.current + 1);
-  //   }
-  // };
-
   const handleOptionsClick = (id: string | null) => {
     setActiveOptionsId(id);
   };
@@ -662,7 +656,6 @@ const MemeDetailPage: React.FC = () => {
       await toggleSave(meme.id, authUsername);
 
       if (wsClient) {
-        // The action should be the opposite of the current state since we're toggling
         const action = currentlySaved ? "UNSAVE" : "SAVE";
 
         useWebSocketStore.getState().sendMessage({

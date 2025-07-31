@@ -75,7 +75,6 @@ const useRawAuthStore = create<AuthStore>()(
         // Update global auth state
         updateGlobalAuthState({
           username: userData.username,
-          theme: userData.theme ?? null,
           isAuthenticated: true
         });
 
@@ -106,7 +105,6 @@ const useRawAuthStore = create<AuthStore>()(
         // Update global auth state
         updateGlobalAuthState({
           username: null,
-          theme: null,
           isAuthenticated: false
         });
 
@@ -125,7 +123,6 @@ const useRawAuthStore = create<AuthStore>()(
       // Update global auth state
       updateGlobalAuthState({
         username: user?.username || null,
-        theme: user?.theme || null,
         isAuthenticated: !!user
       });
     },
@@ -159,7 +156,6 @@ const useRawAuthStore = create<AuthStore>()(
       // Update global auth state
       updateGlobalAuthState({
         username: null,
-        theme: null,
         isAuthenticated: false
       });
     },

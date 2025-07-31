@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
-import { getCurrentTheme, updateGlobalAuthState, getCurrentAuthUser } from '../utils/authHelpers';
+// Note: This hook is deprecated. Use useSettings() instead for theme management.
 
 type ThemeType = 'light' | 'dark' | 'system';
 
 export const useTheme = () => {
   const [theme, setTheme] = useState<ThemeType>(() => {
-    const savedTheme = getCurrentTheme();
-    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-      return savedTheme as ThemeType;
-    }
+    // Fallback to system theme since we no longer store theme in auth context
     return 'system';
   });
 
@@ -25,16 +22,6 @@ export const useTheme = () => {
 
   useEffect(() => {
     applyTheme(theme);
-    
-    // Update global auth state with new theme
-    const authUser = getCurrentAuthUser();
-    if (authUser) {
-      updateGlobalAuthState({
-        username: authUser.username,
-        theme: theme,
-        isAuthenticated: authUser.isAuthenticated
-      });
-    }
 
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');

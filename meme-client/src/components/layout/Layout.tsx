@@ -6,6 +6,7 @@ import { BottomNavigation } from "./BottomNavigation";
 // import { ConnectionStatus } from "../ui/ConnectionStatus";
 import { useSettings } from "../../hooks/useSettings";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useBackgroundSync } from "../../hooks/useBackgroundSync";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,9 @@ export const Layout: React.FC<LayoutProps> = memo(({ children }) => {
   const pathname = location.pathname;
   const { theme } = useSettings();
   const { isAuthenticated } = useAuthContext();
+  
+  // Initialize background sync for theme changes
+  useBackgroundSync();
 
   const isMemeDetailPage = pathname.startsWith('/meme/');
   
@@ -34,6 +38,7 @@ export const Layout: React.FC<LayoutProps> = memo(({ children }) => {
       const root = document.documentElement;
 
       root.classList.remove("light", "dark", "system");
+      root.classList.add(theme);
     };
 
     applyTheme();

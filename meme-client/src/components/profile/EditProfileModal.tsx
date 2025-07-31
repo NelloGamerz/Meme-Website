@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { X, CameraIcon, ImageIcon } from "lucide-react";
 import { useModalControls } from "../../hooks/useModalControls";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useUserStore } from "../../store/useUserStore";
 import { ImageEditorModal } from "./ImageEditorModal";
 

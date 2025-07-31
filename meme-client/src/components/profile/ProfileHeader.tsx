@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { Edit2, UserPlus, UserCheck, Settings} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "../../store/useUserStore";
-import { useMemeContentStore } from "../../store/useMemeContentStore";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 interface ProfileHeaderProps {
   onEditProfile: () => void;
@@ -29,6 +28,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const loggedInUserName = useUserStore.use.loggedInUserName();
   const loggedInUserFollowersCount = useUserStore.use.loggedInUserFollowersCount();
   const loggedInUserFollowingCount = useUserStore.use.loggedInUserFollowingCount();
+  const loggedInUserUploadCount = useUserStore.use.loggedInUserUploadCount();
   const loggedInUserFollowers = useUserStore.use.loggedInUserFollowers();
   
   const viewedUserProfilePictureUrl = useUserStore.use.viewedUserProfilePictureUrl();
@@ -36,13 +36,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const viewedUserName = useUserStore.use.viewedUserName();
   const viewedUserFollowersCount = useUserStore.use.viewedUserFollowersCount();
   const viewedUserFollowingCount = useUserStore.use.viewedUserFollowingCount();
+  const viewedUserUploadCount = useUserStore.use.viewedUserUploadCount();
   const viewedUserFollowers = useUserStore.use.viewedUserFollowers();
   const isFollowingViewedUser = useUserStore.use.isFollowingViewedUser();
   
   const updateViewedProfileFollowState = useUserStore.use.updateViewedProfileFollowState();
   const getLoggedInUser = useUserStore.use.getLoggedInUser();
   
-  const memeList = useMemeContentStore.use.memeList();
   
   const handleFollowToggle = useUserStore.use.handleFollowToggle();
   
@@ -51,7 +51,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const displayBanner = isOwnProfile ? loggedInUserProfileBannerUrl : viewedUserProfileBannerUrl;
   const followersCount = isOwnProfile ? loggedInUserFollowersCount : viewedUserFollowersCount;
   const followingCount = isOwnProfile ? loggedInUserFollowingCount : viewedUserFollowingCount;
-  const memeCount = memeList?.length || 0;
+  const uploadCount = isOwnProfile ? loggedInUserUploadCount : viewedUserUploadCount;
+  const memeCount = uploadCount || 0;
   
   const [isUserFollowingState, setIsUserFollowingState] = useState(false);
   const [isViewedProfileFollowingUserState, setIsViewedProfileFollowingUserState] = useState(false);

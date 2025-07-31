@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import toast from 'react-hot-toast';
 import { createSelectors } from "./createSelectors";
 import { useWebSocketStore } from "../hooks/useWebSockets";
 import { useMemeContentStore } from "./useMemeContentStore";
@@ -140,9 +141,7 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
             
             const currentUser = getCurrentAuthUser();
             if (currentUser?.username && currentUser.username !== data.username) {
-              import('react-hot-toast').then(toast => {
-                toast.default.success(`${data.username} commented: ${data.text}`);
-              });
+              toast.success(`${data.username} commented: ${data.text}`);
             }
           } catch (error) {
           }

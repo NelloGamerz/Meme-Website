@@ -2,7 +2,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { useMemeContentStore } from "../store/useMemeContentStore"
 import { useUserStore } from "../store/useUserStore"
-import { toast } from "react-hot-toast"
+import toast from "react-hot-toast"
 import { useNavigate, useParams } from "react-router-dom"
 import { ProfileHeader } from "../components/profile/ProfileHeader"
 import { ProfileTabs } from "../components/profile/ProfileTabs"
@@ -243,11 +243,8 @@ export const ProfilePage: React.FC = () => {
       if (data.username && data.username !== oldUsername) {
         useUserStore.getState().invalidateProfileCache(oldUsername);
         navigate(`/profile/${data.username}`);
-      }
-      
-      toast.success("Profile updated successfully!");
+      }      
     } catch (error) {      
-      toast.error("Failed to update profile");
       throw error;
     }
   }

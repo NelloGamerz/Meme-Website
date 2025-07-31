@@ -7,10 +7,20 @@ import { getCurrentTheme } from "../utils/authHelpers"
 
 const PasswordResetPage: React.FC = () => {
   useEffect(() => {
-    const originalTheme = getCurrentTheme();
-    
-    document.documentElement.classList.remove("dark", "system");
-    document.documentElement.classList.add("light");
+    let originalTheme: string | null = null;
+
+    const initTheme = async () => {
+      try {
+        originalTheme = await getCurrentTheme();
+      } catch (error) {
+        console.error('Failed to get current theme:', error);
+      }
+      
+      document.documentElement.classList.remove("dark", "system");
+      document.documentElement.classList.add("light");
+    };
+
+    initTheme();
     
     return () => {
       if (originalTheme) {

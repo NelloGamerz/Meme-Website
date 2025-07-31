@@ -13,7 +13,7 @@ import { CreatePage } from './pages/CreatePage';
 import { UploadMemePage } from './pages/UploadMemePage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { getCurrentTheme } from './utils/authHelpers';
+import { initializeTheme, getInMemoryTheme } from './store/useSettingsStore';
 import { WebSocketManager } from './components/websocket/WebSocketManager';
 import { UserProfileInitializer } from './components/auth/UserProfileInitializer';
 import { ThemeProvider } from './context/ThemeProvider';
@@ -50,28 +50,39 @@ function App() {
   const location = useLocation();
 
   React.useEffect(() => {
-    const htmlEl = document.documentElement;
+    const applyTheme = async () => {
+      const htmlEl = document.documentElement;
 
-    const lightOnlyRoutes = ['/auth', '/forgot-password', '/reset-password'];
-    const isLightOnly = lightOnlyRoutes.some((route) =>
-      location.pathname.startsWith(route)
-    );
+      const lightOnlyRoutes = ['/auth', '/forgot-password', '/reset-password'];
+      const isLightOnly = lightOnlyRoutes.some((route) =>
+        location.pathname.startsWith(route)
+      );
 
-    htmlEl.classList.remove('light', 'dark', 'system');
+      htmlEl.classList.remove('light', 'dark', 'system');
 
-    if (isLightOnly) {
-      htmlEl.classList.add('light');
-    } else {
-      const savedTheme = getCurrentTheme();
-
-      if (savedTheme === 'system' || !savedTheme) {
-        htmlEl.classList.add('system');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        htmlEl.classList.add(prefersDark ? 'dark' : 'light');
+      if (isLightOnly) {
+        htmlEl.classList.add('light');
       } else {
-        htmlEl.classList.add(savedTheme);
+        try {
+          await initializeTheme();
+          
+          const savedTheme = getInMemoryTheme();
+
+          if (savedTheme === 'light' || !savedTheme) {
+            htmlEl.classList.add('light');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            htmlEl.classList.add(prefersDark ? 'dark' : 'light');
+          } else {
+            htmlEl.classList.add(savedTheme);
+          }
+        } catch (error) {
+          console.error('Failed to get theme:', error);
+          htmlEl.classList.add('light');
+        }
       }
-    }
+    };
+
+    applyTheme();
   }, [location.pathname]);
 
   return (

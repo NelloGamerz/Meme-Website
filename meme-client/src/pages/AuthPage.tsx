@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { AuthTabs } from "../components/auth/AuthTabs";
 import { LoginForm } from "../components/auth/LoginForm";
 import { RegisterForm } from "../components/auth/RegisterForm";
-import { toast } from "react-hot-toast";
-import { getCurrentTheme } from "../utils/authHelpers";
+import toast from "react-hot-toast";
+import { getInMemoryTheme } from "../store/useSettingsStore";
 
 export const AuthPage: React.FC = () => {
+
   useEffect(() => {
     if (localStorage.getItem("sessionExpired")) {
       toast.error("Session Expired! Please log in again.");
@@ -14,11 +15,22 @@ export const AuthPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const originalTheme = getCurrentTheme();
-    
-    // Force light theme for auth pages without updating global context
-    document.documentElement.classList.remove("dark", "system");
-    document.documentElement.classList.add("light");
+    let originalTheme: string | null = null;
+
+    const initTheme = () => {
+      try {
+        // Get theme from in-memory storage (instant access)
+        originalTheme = getInMemoryTheme() || null;
+      } catch (error) {
+        console.error('Failed to get current theme:', error);
+      }
+      
+      // Force light theme for auth pages without updating global context
+      document.documentElement.classList.remove("dark", "system");
+      document.documentElement.classList.add("light");
+    };
+
+    initTheme();
     
     return () => {
       // Restore original theme classes without updating global context

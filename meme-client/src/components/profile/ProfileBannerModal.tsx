@@ -1,7 +1,7 @@
 import type React from "react"
 import { useRef, useState } from "react"
 import { X, ImageIcon } from "lucide-react"
-import { toast } from "react-hot-toast"
+import toast from "react-hot-toast"
 import { useModalControls } from "../../hooks/useModalControls"
 import { ImageEditorModal } from "./ImageEditorModal"
 

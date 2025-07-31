@@ -40,27 +40,16 @@
 //   window.__authState = authState
 // }
 
-// export const getCurrentTheme = (): string | null => {
-//   if (window.__authState) {
-//     return window.__authState.theme
-//   }
-  
-//   try {
-//     const { useAuthStore } = require('../store/useAuthStore');
-//     const authState = useAuthStore.getState();
-//     if (authState.user && authState.isAuthenticated) {
-//       return authState.user.theme || null;
-//     }
-//   } catch (error) {
-//     console.log(error)
-//   }
-
-//   return null
-// }
-
-// if (typeof window !== 'undefined') {
-//   window.__authState = null
-// }
+export const getCurrentTheme = async (): Promise<string | null> => {
+  try {
+    const { getThemeFromIndexedDB } = await import('./indexedDBCache');
+    const themeSettings = await getThemeFromIndexedDB();
+    return themeSettings ? themeSettings.theme : null;
+  } catch (error) {
+    console.error('Failed to get theme from IndexedDB:', error);
+    return null;
+  }
+};
 
 
 import { useAuthStore } from '../store/useAuthStore';
@@ -75,7 +64,6 @@ export const getCurrentAuthUser = () => {
     if (authState.user && authState.isAuthenticated) {
       const authUser = {
         username: authState.user.username || null,
-        theme: authState.user.theme || null,
         isAuthenticated: authState.isAuthenticated,
       };
       updateGlobalAuthState(authUser);
@@ -92,7 +80,6 @@ declare global {
   interface Window {
     __authState: {
       username: string | null;
-      theme: string | null;
       isAuthenticated: boolean | null;
     } | null;
   }
@@ -100,28 +87,12 @@ declare global {
 
 export const updateGlobalAuthState = (authState: {
   username: string | null;
-  theme: string | null;
   isAuthenticated: boolean | null;
 }) => {
   window.__authState = authState;
 };
 
-export const getCurrentTheme = (): string | null => {
-  if (window.__authState) {
-    return window.__authState.theme;
-  }
 
-  try {
-    const authState = useAuthStore.getState();
-    if (authState.user && authState.isAuthenticated) {
-      return authState.user.theme || null;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-
-  return null;
-};
 
 if (typeof window !== 'undefined') {
   window.__authState = null;
