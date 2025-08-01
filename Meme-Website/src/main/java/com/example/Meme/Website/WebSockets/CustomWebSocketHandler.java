@@ -141,9 +141,7 @@ public class CustomWebSocketHandler implements WebSocketHandler {
         comment.setMemeId(json.get("memeId").asText());
         comment.setText(json.get("text").asText());
 
-        String commentUserId = json.has("userId")
-                ? json.get("userId").asText()
-                : (String) session.getAttributes().get("userId");
+        String commentUserId =  (String) session.getAttributes().get("userId");
         comment.setUserId(commentUserId);
         comment.setUsername(username);
         String profilePictureUrl = json.has("profilePictureUrl")

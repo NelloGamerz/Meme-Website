@@ -49,8 +49,8 @@ public class WebSocketSessionManager {
         return userSession.containsKey(userId);
     }
 
-    public static void sendToUser(String userId, String message) throws IOException {
-        WebSocketSession session = userSession.get(userId);
+    public static void sendToUser(String username, String message) throws IOException {
+        WebSocketSession session = userSession.get(username);
         if (session != null && session.isOpen()) {
             try {
                 session.sendMessage(new org.springframework.web.socket.TextMessage(message));

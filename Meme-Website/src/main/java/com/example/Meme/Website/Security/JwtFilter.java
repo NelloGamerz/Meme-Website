@@ -45,6 +45,11 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        if(path .equals("/health/check")){
+            filterChain.doFilter(request,response);
+            return;
+        }
+
         String accessToken = jwtService.extractTokenFromCookies(request);
         String username = null;
         UserDetails userDetails = null;

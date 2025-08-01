@@ -35,7 +35,7 @@ public class MemeController {
             @AuthenticationPrincipal UserPrincipal user,
             @RequestParam(required = false, defaultValue = "false") boolean excludeComments) {
 
-        String userId = user.getUserId();
+        String userId = (user != null) ? user.getUserId() : null;
         MemeDto memeDto = memeService.getMemeById(id, userId, excludeComments);
         if (memeDto == null) {
             return ResponseEntity.notFound().build();
