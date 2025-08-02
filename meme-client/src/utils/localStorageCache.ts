@@ -116,3 +116,50 @@ export function invalidateAllCache(): void {
     delete lastReadTime[key];
   });
 }
+
+/**
+ * Clear all localStorage data
+ */
+export function clearAllLocalStorage(): void {
+  try {
+    localStorage.clear();
+    console.log('All localStorage data cleared successfully');
+  } catch (error) {
+    console.error('Failed to clear localStorage:', error);
+  }
+}
+
+/**
+ * Clear specific user-related data from localStorage
+ */
+export function clearUserDataFromLocalStorage(): void {
+  const userDataKeys = [
+    'user',
+    'likedMemes', 
+    'savedMemes',
+    'theme',
+    'settings'
+  ];
+  
+  try {
+    userDataKeys.forEach(key => {
+      localStorage.removeItem(key);
+      delete memoryCache[key];
+      delete lastReadTime[key];
+    });
+    console.log('User data cleared from localStorage successfully');
+  } catch (error) {
+    console.error('Failed to clear user data from localStorage:', error);
+  }
+}
+
+/**
+ * Clear all cached data (both memory cache and localStorage)
+ */
+export function clearAllStorageData(): void {
+  // Clear memory cache
+  invalidateAllCache();
+  
+  // Clear localStorage
+  clearAllLocalStorage();
+}

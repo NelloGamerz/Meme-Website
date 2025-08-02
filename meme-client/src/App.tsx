@@ -68,12 +68,13 @@ function App() {
           
           const savedTheme = getInMemoryTheme();
 
-          if (savedTheme === 'light' || !savedTheme) {
-            htmlEl.classList.add('light');
+          if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+            // User has explicitly set a theme preference, use it
+            htmlEl.classList.add(savedTheme);
+          } else {
+            // No saved theme, fall back to system preference
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             htmlEl.classList.add(prefersDark ? 'dark' : 'light');
-          } else {
-            htmlEl.classList.add(savedTheme);
           }
         } catch (error) {
           console.error('Failed to get theme:', error);

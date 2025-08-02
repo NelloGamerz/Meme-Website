@@ -158,6 +158,15 @@ const useRawAuthStore = create<AuthStore>()(
         username: null,
         isAuthenticated: false
       });
+
+      // Clear all user data from storage
+      import('../utils/storageCleanup').then(({ clearAllUserData }) => {
+        clearAllUserData().catch(error => {
+          console.error('Failed to clear storage data during auth clear:', error);
+        });
+      }).catch(error => {
+        console.error('Failed to import storage cleanup module:', error);
+      });
     },
 
     initialize: async () => {

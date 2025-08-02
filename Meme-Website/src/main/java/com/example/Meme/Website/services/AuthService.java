@@ -1,5 +1,6 @@
 package com.example.Meme.Website.services;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,7 +27,9 @@ import com.example.Meme.Website.dto.AuthResponse;
 import com.example.Meme.Website.dto.PasswordResetRequest;
 import com.example.Meme.Website.dto.RegisterResponse;
 import com.example.Meme.Website.models.userModel;
+import com.example.Meme.Website.models.userSettings;
 import com.example.Meme.Website.repository.userRepository;
+import com.example.Meme.Website.repository.userSettingsRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,6 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
     @Autowired
     private userRepository userRepository;
+
+    @Autowired
+    private userSettingsRepository userSettingsRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -108,6 +114,10 @@ public class AuthService {
             user.setUploadCount(0L);
  
             userModel savedUser = userRepository.save(user);
+
+            String userId = savedUser.getUserId();
+            userSettings userSettings = new userSettings(null, userId, "light", Instant.now());
+            userSettingsRepository.save(userSettings);
 
             long accessTokenExpiryMinutes = 1;
             long refreshTokenExpiryMinutes = 60 * 24 * 7;

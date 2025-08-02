@@ -259,6 +259,16 @@ const useAuth = () => {
         loggedInUserFollowersCount: 0,
         loggedInUserFollowingCount: 0,
       });
+
+      // Clear all user data from IndexedDB and localStorage
+      try {
+        const { clearAllUserData } = await import('../utils/storageCleanup');
+        await clearAllUserData();
+      } catch (storageError) {
+        console.error('Failed to clear storage data during logout:', storageError);
+        // Don't show error to user as logout was successful
+      }
+      
       toast.success("Successfully logged out!")
     } catch (error) {
       toast.error("Failed to log out. Please try again.")

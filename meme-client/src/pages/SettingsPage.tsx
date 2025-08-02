@@ -17,7 +17,6 @@ export const SettingsPage = () => {
   
   const [activeTheme, setActiveTheme] = useState<ThemeType>(theme);
 
-  // Update local state when store theme changes
   useEffect(() => {
     setActiveTheme(theme);
   }, [theme]);
@@ -39,8 +38,9 @@ export const SettingsPage = () => {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex items-center mb-6 sticky top-0 z-10 py-2 -mx-6 px-6">
+    <div className="max-w-2xl mx-auto">
+      <div className="flex items-center mb-6 sticky top-0 z-10 py-2  px-6 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+
         <button 
           onClick={() => navigate(-1)} 
           className="mr-3 p-2 rounded-full transition-colors"
@@ -138,7 +138,7 @@ export const SettingsPage = () => {
         </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="lg:hidden bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Other Settings</h2>
         
         {/* Logout button - only visible on mobile devices */}
@@ -146,7 +146,7 @@ export const SettingsPage = () => {
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center h-12 px-4 rounded-lg 
-              text-white bg-red-600 hover:bg-red-700 active:bg-red-800
+              !text-white bg-red-600 hover:bg-red-700 active:bg-red-800
               transition-all duration-200 ease-in-out transform 
               hover:scale-[1.02] active:scale-[0.98]
               hover:shadow-lg active:shadow-inner
@@ -157,7 +157,7 @@ export const SettingsPage = () => {
           </button>
         </div>
         
-        <p className="text-gray-600 dark:text-gray-400">More settings will be available soon.</p>
+        {/* <p className="text-gray-600 dark:text-gray-400">More settings will be available soon.</p> */}
       </div>
     </div>
   );

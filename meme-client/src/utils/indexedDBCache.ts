@@ -159,6 +159,70 @@ class IndexedDBCache {
     }
   }
 
+  /**
+   * Clear all data from IndexedDB
+   */
+  async clearAllData(): Promise<void> {
+    await this.init();
+
+    if (this.db) {
+      return new Promise((resolve, reject) => {
+        const transaction = this.db!.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.clear();
+
+        request.onsuccess = () => {
+          console.log('All IndexedDB data cleared successfully');
+          resolve();
+        };
+        request.onerror = () => {
+          console.error('Failed to clear all data from IndexedDB:', request.error);
+          reject(new Error('Failed to clear all data from IndexedDB'));
+        };
+      });
+    } else {
+      throw new Error('IndexedDB not available');
+    }
+  }
+
+  /**
+   * Delete the entire IndexedDB database
+   */
+  async deleteDatabase(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!window.indexedDB) {
+        console.error('IndexedDB not supported');
+        reject(new Error('IndexedDB not supported'));
+        return;
+      }
+
+      // Close the current connection if it exists
+      if (this.db) {
+        this.db.close();
+        this.db = null;
+        this.isInitialized = false;
+      }
+
+      const deleteRequest = indexedDB.deleteDatabase(this.dbName);
+
+      deleteRequest.onsuccess = () => {
+        console.log('IndexedDB database deleted successfully');
+        resolve();
+      };
+
+      deleteRequest.onerror = () => {
+        console.error('Failed to delete IndexedDB database:', deleteRequest.error);
+        reject(new Error('Failed to delete IndexedDB database'));
+      };
+
+      deleteRequest.onblocked = () => {
+        console.warn('IndexedDB database deletion blocked. Close all tabs and try again.');
+        // Still resolve as the deletion will complete when other connections close
+        resolve();
+      };
+    });
+  }
+
 
 
   /**
@@ -203,6 +267,12 @@ export const needsThemeSync = () =>
 
 export const clearThemeFromIndexedDB = () => 
   indexedDBCache.clearThemeSettings();
+
+export const clearAllIndexedDBData = () => 
+  indexedDBCache.clearAllData();
+
+export const deleteIndexedDBDatabase = () => 
+  indexedDBCache.deleteDatabase();
 
 export const getIndexedDBStats = () => 
   indexedDBCache.getStats();
