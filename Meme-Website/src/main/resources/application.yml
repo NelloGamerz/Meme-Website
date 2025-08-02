@@ -3,4 +3,4 @@ spring:
         name: Meme-Website
 
     profiles:
-        active: dev
+        active: prod

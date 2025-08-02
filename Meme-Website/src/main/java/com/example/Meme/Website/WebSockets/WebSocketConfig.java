@@ -39,7 +39,7 @@ public class WebSocketConfig implements WebSocketConfigurer{
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry){
         registry.addHandler(webSocketHandler() , "/ws")
-        .setAllowedOrigins(frontendUrl)
+        .setAllowedOrigins(frontendUrl, "http://localhost:5173")
         .addInterceptors(webSocketAuthInterceptor, rateLimitHandshakeInterceptor);
     }
 
