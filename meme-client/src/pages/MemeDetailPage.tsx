@@ -162,7 +162,6 @@ const MemeDetailPage: React.FC = () => {
 
   const sessionJoinedRef = useRef(false);
 
-  // Update refs when state changes
   useEffect(() => {
     isLoadingMoreMemesRef.current = isLoadingMoreMemes;
   }, [isLoadingMoreMemes]);
@@ -267,7 +266,6 @@ const MemeDetailPage: React.FC = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          // Use refs to get current values
           if (!isLoadingMoreMemesRef.current && hasMoreMemesRef.current) {
             fetchMoreMemes(currentPageRef.current + 1);
           }
@@ -301,14 +299,12 @@ const MemeDetailPage: React.FC = () => {
     const initializePage = async () => {
       if (id) {
         try {
-          // Always fetch the meme, regardless of authentication status
           const fetchedMeme = await fetchMemeById(id);
           
           if (!fetchedMeme) {
             console.error("MemeDetailPage: Failed to fetch meme with ID:", id);
           }
 
-          // Only do authentication-specific actions if user is authenticated
           if (isAuthenticated && !sessionJoinedRef.current) {
             joinPostSession(id);
             sessionJoinedRef.current = true;

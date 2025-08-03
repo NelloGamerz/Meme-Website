@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
 import { backgroundSyncManager, getSyncStatus } from '../utils/backgroundSync';
 
-/**
- * Hook to manage background sync functionality
- * Automatically initializes background sync and provides status
- */
 export const useBackgroundSync = () => {
   const [syncStatus, setSyncStatus] = useState(getSyncStatus());
 
   useEffect(() => {
-    // Update sync status periodically
     const interval = setInterval(() => {
       setSyncStatus(getSyncStatus());
     }, 1000);

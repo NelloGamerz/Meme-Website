@@ -99,7 +99,6 @@ const useAuth = () => {
       };
       connectWebSocket();
       
-      // Dispatch auth state change event
       window.dispatchEvent(new CustomEvent('auth-state-changed', {
         detail: { user: userData, isAuthenticated: true }
       }));
@@ -128,7 +127,6 @@ const useAuth = () => {
 
       toast.success("Successfully registered!")
       
-      // Update the auth store with user data
       const userData = {
         userId: response.data.userId,
         username: response.data.username,
@@ -140,7 +138,6 @@ const useAuth = () => {
       setUser(userData);
       setAuthenticated(true);
       
-      // Update the user store with auth data and fetch profile
       const { handleAuthStateChange } = useUserStore.getState() as {
         handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
       };
@@ -154,7 +151,6 @@ const useAuth = () => {
       };
       connectWebSocket();
       
-      // Dispatch auth state change event
       window.dispatchEvent(new CustomEvent('auth-state-changed', {
         detail: { user: userData, isAuthenticated: true }
       }));
@@ -229,17 +225,14 @@ const useAuth = () => {
         withCredentials: true,
       })
 
-      // Clear auth store
       setUser(null);
       setAuthenticated(false);
       
-      // Clear auth user from user store
       const { handleAuthStateChange } = useUserStore.getState() as {
         handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
       };
       await handleAuthStateChange(null);
       
-      // Dispatch auth state change event
       window.dispatchEvent(new CustomEvent('auth-state-changed', {
         detail: { user: null, isAuthenticated: false }
       }));
@@ -260,13 +253,11 @@ const useAuth = () => {
         loggedInUserFollowingCount: 0,
       });
 
-      // Clear all user data from IndexedDB and localStorage
       try {
         const { clearAllUserData } = await import('../utils/storageCleanup');
         await clearAllUserData();
       } catch (storageError) {
         console.error('Failed to clear storage data during logout:', storageError);
-        // Don't show error to user as logout was successful
       }
       
       toast.success("Successfully logged out!")

@@ -22,10 +22,8 @@ const getInitialTheme = async (): Promise<ThemeType> => {
   if (typeof window === "undefined") return "light";
 
   try {
-    // Initialize theme in memory if not already done
     await initializeTheme();
     
-    // Get theme from in-memory storage (instant access)
     const savedTheme = getInMemoryTheme();
     if (savedTheme && ["light", "dark"].includes(savedTheme)) {
       return savedTheme as ThemeType;
@@ -42,7 +40,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [theme, setThemeState] = useState<ThemeType>("light");
 
-  // Initialize theme from IndexedDB
   useEffect(() => {
     const initializeTheme = async () => {
       const initialTheme = await getInitialTheme();
@@ -59,7 +56,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
 
     root.classList.add(themeValue);
 
-    // Force a repaint
     document.body.style.display = "none";
     document.body.offsetHeight;
     document.body.style.display = "";
@@ -70,7 +66,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
       applyTheme(newTheme);
       setThemeState(newTheme);
       
-      // Save theme to IndexedDB
       try {
         await saveThemeToIndexedDB(newTheme, false);
       } catch (error) {

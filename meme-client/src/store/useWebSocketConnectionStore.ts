@@ -33,7 +33,6 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
     connectWebSocket: () => {
       const wsStore = useWebSocketStore.getState();
       
-      // If we don't have a connection, try to establish one
       if (!wsStore.isConnected) {
         wsStore.restoreConnection();
         
@@ -165,7 +164,6 @@ const useRawWebSocketConnectionStore = create<WebSocketConnectionStore>()(
 
             const shouldBeLiked = data.action === 'LIKE';
             
-            // If the current state doesn't match what it should be, toggle it
             if (isCurrentlyLiked !== shouldBeLiked) {
               memeStore.toggleLike(data.memeId as string, currentUser.username);
             }

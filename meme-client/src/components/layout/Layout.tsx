@@ -19,7 +19,6 @@ export const Layout: React.FC<LayoutProps> = memo(({ children }) => {
   const { theme } = useSettings();
   const { isAuthenticated } = useAuthContext();
   
-  // Initialize background sync for theme changes
   useBackgroundSync();
 
   const isMemeDetailPage = pathname.startsWith('/meme/');

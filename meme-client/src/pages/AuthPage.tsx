@@ -19,13 +19,11 @@ export const AuthPage: React.FC = () => {
 
     const initTheme = () => {
       try {
-        // Get theme from in-memory storage (instant access)
         originalTheme = getInMemoryTheme() || null;
       } catch (error) {
         console.error('Failed to get current theme:', error);
       }
       
-      // Force light theme for auth pages without updating global context
       document.documentElement.classList.remove("dark", "system");
       document.documentElement.classList.add("light");
     };
@@ -33,7 +31,6 @@ export const AuthPage: React.FC = () => {
     initTheme();
     
     return () => {
-      // Restore original theme classes without updating global context
       if (originalTheme) {
         document.documentElement.classList.remove("light", "dark", "system");
         document.documentElement.classList.add(originalTheme);

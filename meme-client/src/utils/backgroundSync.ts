@@ -1,7 +1,3 @@
-/**
- * Background sync utility for syncing pending changes when connection is restored
- */
-
 import { useSettingsStore } from '../store/useSettingsStore';
 import { needsThemeSync } from './indexedDBCache';
 
@@ -10,7 +6,7 @@ class BackgroundSyncManager {
   private syncInProgress = false;
   private retryTimeout: NodeJS.Timeout | null = null;
   private maxRetries = 3;
-  private retryDelay = 5000; // 5 seconds
+  private retryDelay = 5000;
 
   constructor() {
     this.setupEventListeners();
@@ -18,14 +14,9 @@ class BackgroundSyncManager {
   }
 
   private setupEventListeners() {
-    // Listen for online/offline events
     window.addEventListener('online', this.handleOnline.bind(this));
     window.addEventListener('offline', this.handleOffline.bind(this));
-    
-    // Listen for visibility change (when user returns to tab)
-    document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
-    
-    // Listen for focus events (when user returns to window)
+    document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));    
     window.addEventListener('focus', this.handleFocus.bind(this));
   }
 
@@ -55,7 +46,6 @@ class BackgroundSyncManager {
   }
 
   private startPeriodicSync() {
-    // Sync every 30 seconds if online
     setInterval(() => {
       if (this.isOnline && !this.syncInProgress) {
         this.syncPendingChanges();
@@ -67,7 +57,6 @@ class BackgroundSyncManager {
     if (this.syncInProgress || !this.isOnline) return;
 
     try {
-      // Check if there are pending changes
       const needsSync = await needsThemeSync();
       if (!needsSync) return;
 
@@ -96,10 +85,6 @@ class BackgroundSyncManager {
       this.syncInProgress = false;
     }
   }
-
-  /**
-   * Manually trigger sync (useful for testing or immediate sync needs)
-   */
   public async forcSync(): Promise<void> {
     if (!this.isOnline) {
       throw new Error('Cannot sync while offline');
@@ -107,10 +92,6 @@ class BackgroundSyncManager {
     
     await this.syncPendingChanges();
   }
-
-  /**
-   * Get sync status
-   */
   public getStatus() {
     return {
       isOnline: this.isOnline,
@@ -118,10 +99,6 @@ class BackgroundSyncManager {
       hasRetryScheduled: !!this.retryTimeout
     };
   }
-
-  /**
-   * Cleanup resources
-   */
   public destroy() {
     window.removeEventListener('online', this.handleOnline.bind(this));
     window.removeEventListener('offline', this.handleOffline.bind(this));
@@ -135,10 +112,7 @@ class BackgroundSyncManager {
   }
 }
 
-// Create singleton instance
 export const backgroundSyncManager = new BackgroundSyncManager();
-
-// Export utility functions
 export const forceSync = () => backgroundSyncManager.forcSync();
 export const getSyncStatus = () => backgroundSyncManager.getStatus();
 export const destroyBackgroundSync = () => backgroundSyncManager.destroy();

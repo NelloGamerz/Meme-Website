@@ -1,7 +1,3 @@
-/**
- * IndexedDB utility for persistent storage of user settings
- */
-
 interface SettingsData {
   theme: string;
   lastUpdated: number;
@@ -15,9 +11,6 @@ class IndexedDBCache {
   private db: IDBDatabase | null = null;
   private isInitialized = false;
 
-  /**
-   * Initialize the IndexedDB connection
-   */
   async init(): Promise<void> {
     if (this.isInitialized) return;
 
@@ -44,7 +37,6 @@ class IndexedDBCache {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         
-        // Create settings store if it doesn't exist
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
           store.createIndex('lastUpdated', 'lastUpdated', { unique: false });
@@ -53,9 +45,6 @@ class IndexedDBCache {
     });
   }
 
-  /**
-   * Save theme settings to IndexedDB
-   */
   async saveThemeSettings(theme: string, syncedWithServer: boolean = false): Promise<void> {
     await this.init();
 
@@ -83,9 +72,6 @@ class IndexedDBCache {
     }
   }
 
-  /**
-   * Get theme settings from IndexedDB
-   */
   async getThemeSettings(): Promise<SettingsData | null> {
     await this.init();
 
@@ -118,9 +104,6 @@ class IndexedDBCache {
     }
   }
 
-  /**
-   * Mark theme as synced with server
-   */
   async markThemeAsSynced(): Promise<void> {
     const currentSettings = await this.getThemeSettings();
     if (currentSettings) {
@@ -128,17 +111,11 @@ class IndexedDBCache {
     }
   }
 
-  /**
-   * Check if theme needs to be synced with server
-   */
   async needsServerSync(): Promise<boolean> {
     const settings = await this.getThemeSettings();
     return settings ? !settings.syncedWithServer : false;
   }
 
-  /**
-   * Clear all theme settings
-   */
   async clearThemeSettings(): Promise<void> {
     await this.init();
 
@@ -159,9 +136,6 @@ class IndexedDBCache {
     }
   }
 
-  /**
-   * Clear all data from IndexedDB
-   */
   async clearAllData(): Promise<void> {
     await this.init();
 
@@ -172,7 +146,6 @@ class IndexedDBCache {
         const request = store.clear();
 
         request.onsuccess = () => {
-          console.log('All IndexedDB data cleared successfully');
           resolve();
         };
         request.onerror = () => {
@@ -185,9 +158,6 @@ class IndexedDBCache {
     }
   }
 
-  /**
-   * Delete the entire IndexedDB database
-   */
   async deleteDatabase(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!window.indexedDB) {
@@ -196,7 +166,6 @@ class IndexedDBCache {
         return;
       }
 
-      // Close the current connection if it exists
       if (this.db) {
         this.db.close();
         this.db = null;
@@ -206,7 +175,7 @@ class IndexedDBCache {
       const deleteRequest = indexedDB.deleteDatabase(this.dbName);
 
       deleteRequest.onsuccess = () => {
-        console.log('IndexedDB database deleted successfully');
+        ('IndexedDB database deleted successfully');
         resolve();
       };
 
@@ -217,17 +186,11 @@ class IndexedDBCache {
 
       deleteRequest.onblocked = () => {
         console.warn('IndexedDB database deletion blocked. Close all tabs and try again.');
-        // Still resolve as the deletion will complete when other connections close
         resolve();
       };
     });
   }
 
-
-
-  /**
-   * Get database statistics for debugging
-   */
   async getStats(): Promise<{ hasIndexedDB: boolean; dbInitialized: boolean; storageUsed: number }> {
     await this.init();
     
@@ -249,10 +212,8 @@ class IndexedDBCache {
   }
 }
 
-// Create a singleton instance
 export const indexedDBCache = new IndexedDBCache();
 
-// Export utility functions for easy use
 export const saveThemeToIndexedDB = (theme: string, synced: boolean = false) => 
   indexedDBCache.saveThemeSettings(theme, synced);
 

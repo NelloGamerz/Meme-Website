@@ -63,7 +63,7 @@ export function getCurrentUser(): {
       };
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
   
   const user = getFromStorage<{
@@ -123,7 +123,6 @@ export function invalidateAllCache(): void {
 export function clearAllLocalStorage(): void {
   try {
     localStorage.clear();
-    console.log('All localStorage data cleared successfully');
   } catch (error) {
     console.error('Failed to clear localStorage:', error);
   }
@@ -147,19 +146,12 @@ export function clearUserDataFromLocalStorage(): void {
       delete memoryCache[key];
       delete lastReadTime[key];
     });
-    console.log('User data cleared from localStorage successfully');
   } catch (error) {
     console.error('Failed to clear user data from localStorage:', error);
   }
 }
 
-/**
- * Clear all cached data (both memory cache and localStorage)
- */
 export function clearAllStorageData(): void {
-  // Clear memory cache
   invalidateAllCache();
-  
-  // Clear localStorage
   clearAllLocalStorage();
 }

@@ -1,10 +1,6 @@
 import { useEffect } from 'react';
 import { useSettingsStore, ThemeType } from '../store/useSettingsStore';
 
-/**
- * Custom hook for managing user settings
- * Provides easy access to settings state and actions
- */
 export const useSettings = () => {
   const settings = useSettingsStore.use.settings();
   const isLoading = useSettingsStore.use.isLoading();
@@ -19,7 +15,6 @@ export const useSettings = () => {
   const initialize = useSettingsStore.use.initialize();
   const setError = useSettingsStore.use.setError();
 
-  // Auto-initialize on first use
   useEffect(() => {
     if (!isInitialized) {
       initialize();
@@ -27,14 +22,12 @@ export const useSettings = () => {
   }, [initialize, isInitialized]);
 
   return {
-    // State
     settings,
     theme: settings.theme,
     isLoading,
     error,
     isInitialized,
     
-    // Actions
     setTheme,
     updateThemeLocally,
     fetchSettings,
@@ -43,7 +36,6 @@ export const useSettings = () => {
     initialize,
     setError,
     
-    // Utility functions
     toggleTheme: () => {
       const newTheme: ThemeType = settings.theme === 'light' ? 'dark' : 'light';
       setTheme(newTheme);
