@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-// Note: This hook is deprecated. Use useSettings() instead for theme management.
 
 type ThemeType = 'light' | 'dark' | 'system';
 
 export const useTheme = () => {
   const [theme, setTheme] = useState<ThemeType>(() => {
-    // Fallback to system theme since we no longer store theme in auth context
     return 'system';
   });
 

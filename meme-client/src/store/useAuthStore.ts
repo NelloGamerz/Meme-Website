@@ -72,7 +72,6 @@ const useRawAuthStore = create<AuthStore>()(
           state.isInitialized = true;
         });
 
-        // Update global auth state
         updateGlobalAuthState({
           username: userData.username,
           isAuthenticated: true
@@ -102,7 +101,6 @@ const useRawAuthStore = create<AuthStore>()(
           state.error = null;
         });
 
-        // Update global auth state
         updateGlobalAuthState({
           username: null,
           isAuthenticated: false
@@ -120,7 +118,6 @@ const useRawAuthStore = create<AuthStore>()(
         state.isAuthenticated = !!user;
       });
 
-      // Update global auth state
       updateGlobalAuthState({
         username: user?.username || null,
         isAuthenticated: !!user
@@ -153,13 +150,11 @@ const useRawAuthStore = create<AuthStore>()(
         state.error = null;
       });
 
-      // Update global auth state
       updateGlobalAuthState({
         username: null,
         isAuthenticated: false
       });
 
-      // Clear all user data from storage
       import('../utils/storageCleanup').then(({ clearAllUserData }) => {
         clearAllUserData().catch(error => {
           console.error('Failed to clear storage data during auth clear:', error);

@@ -74,7 +74,6 @@ const useRawNotificationStore = create<NotificationStore>()(
 
     markAsRead: async (notificationId: string) => {
       try {
-        // Mark all notifications as read when clicking on any individual notification
         set((state) => {
           state.notifications = state.notifications.map((notification: Notification) => ({
             ...notification,

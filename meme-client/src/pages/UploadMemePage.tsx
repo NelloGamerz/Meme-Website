@@ -272,7 +272,7 @@ export const UploadMemePage: React.FC = () => {
           selectedFile,
           selectedFilter?.cssFilter || "none"
         );
-        fileToUpload = await compressImage(fileToUpload, 1024 * 1024); // 1 MB
+        fileToUpload = await compressImage(fileToUpload, 1024 * 1024);
       }
 
       const payload = {

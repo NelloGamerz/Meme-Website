@@ -24,7 +24,6 @@ interface NotificationData {
   targetUsername?: string;
 }
 
-// Global state to prevent duplicate API calls
 let globalState = {
   user: {username: "", email: "", profilePicture: "" },
   notificationsFetched: false,
@@ -48,7 +47,7 @@ const initializeUser = () => {
       profilePicture: authUser?.profilePicture || ""
     };
   } catch (error) {
-    // Handle error silently
+    console.error("Error initializing user");
   }
 };
 
@@ -121,7 +120,6 @@ export const useNavigationData = () => {
   const getNotifications = useNotificationStore.use.getNotifications();
   const loggedInUserName = useUserStore.use.loggedInUserName();
 
-  // Subscribe to global state changes
   useEffect(() => {
     const callback = () => forceUpdate({});
     globalState.subscribers.add(callback);
@@ -130,7 +128,6 @@ export const useNavigationData = () => {
     };
   }, []);
 
-  // Initialize user data
   useEffect(() => {
     const currentLoggedInUserName = loggedInUserName || "";
     if (currentLoggedInUserName !== globalState.user.username) {
@@ -140,14 +137,12 @@ export const useNavigationData = () => {
     }
   }, [loggedInUserName]);
 
-  // Setup WebSocket handlers
   useEffect(() => {
     if (globalState.user.username) {
       setupWebSocketHandlers();
     }
   }, [globalState.user.username]);
 
-  // Fetch notifications
   useEffect(() => {
     const currentUsername = loggedInUserName || globalState.user.username;
     if (currentUsername && !globalState.notificationsFetched) {
@@ -156,7 +151,6 @@ export const useNavigationData = () => {
     }
   }, [getNotifications, globalState.user.username, loggedInUserName]);
 
-  // Update unread count
   useEffect(() => {
     if (notifications.length > 0 && !globalState.initialCountSet) {
       const count = notifications.filter(notification => !notification.isRead && !notification.read).length;
@@ -170,7 +164,6 @@ export const useNavigationData = () => {
     }
   }, [notifications]);
 
-  // Handle notification events
   useEffect(() => {
     const handleNewNotification = (event: Event) => {
       const customEvent = event as CustomEvent<{ notification: Notification }>;

@@ -211,12 +211,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         profileBanner?: File;
       } = {};
 
-      // Only include username if it has changed
       if (editName !== currentName) {
         updateData.username = editName;
       }
 
-      // Include files if they were selected
       if (profilePictureFile) {
         updateData.profilePicture = profilePictureFile;
       }
@@ -225,7 +223,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         updateData.profileBanner = profileBannerFile;
       }
 
-      // Only call onSave if there are actual changes
       if (Object.keys(updateData).length > 0) {
         await onSave(updateData);
         toast.success("Profile updated successfully!");

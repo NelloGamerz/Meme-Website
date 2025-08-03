@@ -19,7 +19,6 @@ export const ForgotPasswordForm: React.FC = () => {
         console.error('Failed to get current theme:', error);
       }
 
-      // Force light theme for auth pages without updating global context
       document.documentElement.classList.remove("dark", "system");
       document.documentElement.classList.add("light");
     };
@@ -27,7 +26,6 @@ export const ForgotPasswordForm: React.FC = () => {
     initTheme();
 
     return () => {
-      // Restore original theme classes without updating global context
       if (originalTheme) {
         document.documentElement.classList.remove("light", "dark", "system");
         document.documentElement.classList.add(originalTheme);

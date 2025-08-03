@@ -65,11 +65,6 @@ class WebSocketService {
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
   
-  // private cleanupEventListeners(): void {
-  //   window.removeEventListener('online', this.handleOnline);
-  //   window.removeEventListener('offline', this.handleOffline);
-  //   document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-  // }
   private startConnectionMonitor(): void {
     this.stopConnectionMonitor();
     
@@ -178,7 +173,7 @@ class WebSocketService {
         id: 'websocket-rate-limit-error',
       });
       
-      setTimeout(() => this.reconnect(), 10000); // 10 seconds delay
+      setTimeout(() => this.reconnect(), 10000);
     } else if (event.code === 1006) {
       setTimeout(() => this.reconnect(), 500);
     } else if (event.code === 1011) {
@@ -472,7 +467,6 @@ class WebSocketService {
       const authState = useAuthStore.getState();
       const user = authState.user;
       
-      // Check if we have a valid user
       if (!user?.username) {
         return false;
       }
@@ -493,7 +487,7 @@ class WebSocketService {
       this.sendMessage(message);
     }).catch(() => {});
     
-    return true; // Return true to indicate the request was initiated
+    return true;
   }
 
   public sendJoinPostRequest(postId: string): boolean {
@@ -640,7 +634,7 @@ class WebSocketService {
       this.sendMessage(message);
     }).catch(() => {});
     
-    return true; // Return true to indicate the request was initiated
+    return true;
   }
 }
 

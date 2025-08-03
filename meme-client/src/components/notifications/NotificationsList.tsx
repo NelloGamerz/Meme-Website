@@ -131,7 +131,6 @@ export const NotificationsList: React.FC = () => {
 
   const handleNotificationClick = async (notification: Notification) => {
     try {
-      // Mark as read using the store's markAsRead function
       if (!notification.read && !notification.isRead) {
         await markAsRead(notification.id);
       }
@@ -234,7 +233,6 @@ export const NotificationsList: React.FC = () => {
                     onClick={async (e) => {
                       e.stopPropagation();
                       try {
-                        // Mark as read using the store's markAsRead function
                         if (!notification.read && !notification.isRead) {
                           await markAsRead(notification.id);
                         }

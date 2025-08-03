@@ -52,7 +52,6 @@ let isThemeInitialized = false;
 const getInitialThemeSync = (): ThemeType => {
   if (typeof window === "undefined") return "light";
 
-  // If already initialized, return in-memory theme
   if (isThemeInitialized) {
     return inMemoryTheme;
   }
@@ -60,7 +59,6 @@ const getInitialThemeSync = (): ThemeType => {
   return "light";
 };
 
-// Initialize theme from IndexedDB into memory
 const initializeThemeInMemory = async (): Promise<void> => {
   if (isThemeInitialized) return;
 
@@ -101,25 +99,20 @@ const useRawSettingsStore = create<SettingsStore>()(
     setTheme: async (theme: ThemeType) => {
       const currentTheme = get().settings.theme;
       
-      // Update in-memory theme immediately for instant UI response
       inMemoryTheme = theme;
       
       set((state) => {
         state.isLoading = true;
         state.error = null;
-        state.settings.theme = theme; // Update store state immediately
+        state.settings.theme = theme;
       });
 
-      // Apply theme to DOM immediately
       applyThemeToDOM(theme);
 
       try {
-        // Make backend call
         await api.patch("/user/settings", { theme });
-
-        // After successful backend response, save to IndexedDB as synced
         try {
-          await saveThemeToIndexedDB(theme, true); // Mark as synced since backend call succeeded
+          await saveThemeToIndexedDB(theme, true);
         } catch (error) {
           console.warn("Failed to save theme to IndexedDB:", error);
         }
@@ -134,7 +127,6 @@ const useRawSettingsStore = create<SettingsStore>()(
         });
 
       } catch (error: any) {
-        // Revert in-memory theme and store state
         inMemoryTheme = currentTheme;
         
         set((state) => {
@@ -143,7 +135,6 @@ const useRawSettingsStore = create<SettingsStore>()(
           state.error = error?.response?.data?.message || "Failed to update theme";
         });
 
-        // Revert DOM theme
         applyThemeToDOM(currentTheme);
 
         toast.error("Failed to update theme. Please try again.", {
@@ -156,7 +147,6 @@ const useRawSettingsStore = create<SettingsStore>()(
     },
 
     updateThemeLocally: (theme: ThemeType) => {
-      // Update in-memory theme
       inMemoryTheme = theme;
       
       set((state) => {
@@ -176,15 +166,11 @@ const useRawSettingsStore = create<SettingsStore>()(
         const response = await api.get("/user/settings");
         const serverTheme = response.data.theme || DEFAULT_SETTINGS.theme;
         
-        // Check if IndexedDB has a theme preference
         let finalTheme = serverTheme;
         try {
           const indexedDBSettings = await getThemeFromIndexedDB();
           if (indexedDBSettings && ["light", "dark"].includes(indexedDBSettings.theme)) {
-            // Use IndexedDB theme as the source of truth
-            finalTheme = indexedDBSettings.theme as ThemeType;
-            
-            // If IndexedDB theme differs from server, sync it to server
+            finalTheme = indexedDBSettings.theme as ThemeType;            
             if (finalTheme !== serverTheme) {
               try {
                 await api.patch("/user/settings", { theme: finalTheme });
@@ -202,7 +188,6 @@ const useRawSettingsStore = create<SettingsStore>()(
           theme: finalTheme,
         };
 
-        // Update in-memory theme
         inMemoryTheme = finalTheme;
 
         set((state) => {
@@ -212,8 +197,6 @@ const useRawSettingsStore = create<SettingsStore>()(
         });
 
         applyThemeToDOM(fetchedSettings.theme);
-
-        // Save to IndexedDB as synced
         try {
           await saveThemeToIndexedDB(fetchedSettings.theme, true);
         } catch (error) {
@@ -300,29 +283,20 @@ const useRawSettingsStore = create<SettingsStore>()(
       if (get().isInitialized) return;
 
       try {
-        // Initialize in-memory theme from IndexedDB
-        await initializeThemeInMemory();
-        
-        // Update store with in-memory theme
+        await initializeThemeInMemory();        
         set((state) => {
           state.settings.theme = inMemoryTheme;
         });
-        
-        // Apply theme immediately
         applyThemeToDOM(inMemoryTheme);
-
-        // Then fetch from server to ensure sync
         await get().fetchSettings();
         
       } catch (error) {
         console.warn("Failed to initialize from IndexedDB, falling back to server:", error);
-        // Fallback to server-only initialization
         await get().fetchSettings();
       }
     },
 
     getTheme: () => {
-      // Return in-memory theme for instant access
       return isThemeInitialized ? inMemoryTheme : get().settings.theme;
     },
 
