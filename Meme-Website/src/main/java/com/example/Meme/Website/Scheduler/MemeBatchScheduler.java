@@ -56,7 +56,6 @@ public class MemeBatchScheduler {
                 if (delta == 0)
                     continue;
 
-                // Prevent negative uploadCount
                 Document query = new Document("_id", new ObjectId(userId));
                 if (delta < 0) {
                     query.append("uploadCount", new Document("$gt", 0));

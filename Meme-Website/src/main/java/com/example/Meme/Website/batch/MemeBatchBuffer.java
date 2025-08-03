@@ -21,12 +21,12 @@ public class MemeBatchBuffer {
 
     public void bufferMemeInsert(Meme meme){
         memeInsertQueue.offer(meme);
-        uploaderUploadCountDelta.merge(meme.getUploader(), 1, Integer::sum);
+        uploaderUploadCountDelta.merge(meme.getUserId(), 1, Integer::sum);
     }
 
     public void bufferMemeDelete(Meme meme){
         memeDeleteQueue.offer(meme);
-        uploaderUploadCountDelta.merge(meme.getUploader(), -1, Integer::sum);
+        uploaderUploadCountDelta.merge(meme.getUserId(), -1, Integer::sum);
     }
 
     public List<Meme> drainMemeBatch(){

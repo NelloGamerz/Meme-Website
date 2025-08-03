@@ -19,25 +19,12 @@ const categories: MemeCategory[] = [
   { id: "wholesome", name: "Wholesome" },
   { id: "trending", name: "Trending" },
   { id: "random", name: "Random" },
-  { id: "lifestyle", name: "Lifestyle" },
   { id: "music", name: "Music" },
   { id: "gaming", name: "Gaming" },
-  { id: "meme", name: "Classic Meme" },
   { id: "sports", name: "Sports" },
+  { id: "meme", name: "Classic Meme" },
   { id: "politics", name: "Politics" },
   { id: "animals", name: "Animals" },
-  { id: "food", name: "Food" },
-  { id: "travel", name: "Travel" },
-  { id: "science", name: "Science" },
-  { id: "movies", name: "Movies & TV" },
-  { id: "books", name: "Books" },
-  { id: "art", name: "Art & Design" },
-  { id: "nature", name: "Nature" },
-  { id: "fitness", name: "Fitness" },
-  { id: "business", name: "Business" },
-  { id: "education", name: "Education" },
-  { id: "history", name: "History" },
-  { id: "philosophy", name: "Philosophy" },
 ]
 
 export const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, onCategorySelect }) => {
@@ -120,7 +107,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCate
   const handleWheel = (event: React.WheelEvent) => {
     if (!isOpen || isMobile) return
 
-    event.preventDefault()
+    // event.preventDefault()
     event.stopPropagation()
 
     if (scrollTimeoutRef.current) {

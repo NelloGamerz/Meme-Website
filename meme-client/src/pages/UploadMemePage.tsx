@@ -30,7 +30,6 @@ interface MemeTag {
 }
 
 export const UploadMemePage: React.FC = () => {
-
   const [currentStep, setCurrentStep] = useState<UploadStep>("select");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -175,15 +174,18 @@ export const UploadMemePage: React.FC = () => {
 
   const processVideoOrGifUpload = async (file: File): Promise<boolean> => {
     try {
-      const formattedFilename = file.name.trim().replace(/\s+/g, "_").replace(/[^\w.-]/g, "");      
+      const formattedFilename = file.name
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^\w.-]/g, "");
       const payload = {
         files: [
           {
             filename: formattedFilename,
             contentType: file.type,
-            type: "meme"
-          }
-        ]
+            type: "meme",
+          },
+        ],
       };
 
       const response = await api.post("/upload/presign-temp", payload, {
@@ -192,7 +194,7 @@ export const UploadMemePage: React.FC = () => {
         },
       });
       if (
-        Array.isArray(response.data) && 
+        Array.isArray(response.data) &&
         response.data.length > 0 &&
         response.data[0].uploadedUrl &&
         response.data[0].publicUrl &&
@@ -278,11 +280,14 @@ export const UploadMemePage: React.FC = () => {
       const payload = {
         files: [
           {
-            filename: selectedFile.name.trim().replace(/\s+/g, "_").replace(/[^\w.-]/g, ""),
+            filename: selectedFile.name
+              .trim()
+              .replace(/\s+/g, "_")
+              .replace(/[^\w.-]/g, ""),
             contentType: selectedFile.type,
-            type: "meme"
-          }
-        ]
+            type: "meme",
+          },
+        ],
       };
 
       const response = await api.post("/upload/presign-temp", payload, {
@@ -292,7 +297,7 @@ export const UploadMemePage: React.FC = () => {
       });
 
       if (
-        Array.isArray(response.data) && 
+        Array.isArray(response.data) &&
         response.data.length > 0 &&
         response.data[0].uploadedUrl &&
         response.data[0].publicUrl &&
@@ -377,8 +382,8 @@ export const UploadMemePage: React.FC = () => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !title.trim() || !selectedCategory) {
-      alert("Please provide a file, title, and category");
+    if (!selectedFile || !title.trim() || !selectedCategory || tags.length === 0) {
+      alert("Please provide a file, title, category, and at least one tag");
       return;
     }
 
@@ -522,10 +527,11 @@ export const UploadMemePage: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-lg xs:rounded-xl sm:rounded-2xl shadow-xl overflow-hidden upload-card">
           <div className="p-3 xs:p-4 sm:p-6 md:p-8">
-            <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-center mb-1 sm:mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent upload-header">
+            <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-center sm:mb-2 text-blue-600 dark:text-blue-600">
               Upload Your Meme
             </h1>
-            <p className="text-center text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 md:mb-8 text-xs xs:text-sm sm:text-base upload-description">
+
+            <p className="text-center text-gray-600 dark:text-gray-400  sm:mb-6 md:mb-8 text-xs xs:text-sm sm:text-base upload-description">
               Share your creativity with the world
             </p>
 
@@ -555,7 +561,7 @@ export const UploadMemePage: React.FC = () => {
                       ) : null}
                       <button
                         onClick={resetUpload}
-                        className="absolute top-1 xs:top-2 sm:top-4 right-1 xs:right-2 sm:right-4 p-1 xs:p-1.5 sm:p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg touch-manipulation"
+                        className="absolute top-1 xs:top-2 sm:top-4 right-1 xs:right-2 sm:right-4 p-1 xs:p-1.5 sm:p-2 bg-red-500 !text-white rounded-full hover:bg-red-600 transition-colors shadow-lg touch-manipulation"
                       >
                         <X className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
                       </button>
@@ -592,7 +598,7 @@ export const UploadMemePage: React.FC = () => {
                   <div className="flex justify-end">
                     <button
                       onClick={goToNextStep}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 xs:px-6 sm:px-8 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center font-medium shadow-lg hover:shadow-xl text-xs xs:text-sm sm:text-base touch-manipulation"
+                      className="bg-blue-600 !text-white px-4 xs:px-6 sm:px-8 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center font-medium shadow-lg hover:shadow-xl text-xs xs:text-sm sm:text-base touch-manipulation"
                     >
                       {mediaType === "image" ? (
                         <>
@@ -637,22 +643,22 @@ export const UploadMemePage: React.FC = () => {
                     </div>
                   </div>
                 )}
-
-                <div className="flex flex-col xs:flex-row justify-between gap-2 xs:gap-4">
+                <div className="flex flex-row xs:flex-row justify-center items-center pt-2 sm:pt-4">
                   <button
                     onClick={goToPreviousStep}
-                    className="bg-white dark:bg-gray-600 text-black dark:text-gray-300 px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors flex items-center justify-center text-xs xs:text-sm sm:text-base touch-manipulation"
+                    className="w-full xs:w-auto bg-white dark:bg-gray-600 text-black dark:text-gray-300 px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors flex items-center justify-center text-xs xs:text-sm sm:text-base touch-manipulation"
                   >
-                    <ArrowLeft className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Back
                   </button>
+
                   <button
                     onClick={goToNextStep}
                     disabled={uploadProgress !== null && uploadProgress < 100}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 xs:px-6 sm:px-8 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center font-medium shadow-lg text-xs xs:text-sm sm:text-base touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full xs:w-auto bg-blue-600 !text-white px-4 xs:px-6 sm:px-8 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg hover:shadow-xl text-xs xs:text-sm sm:text-base touch-manipulation"
                   >
                     Next
-                    <ArrowRight className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                   </button>
                 </div>
               </div>
@@ -706,17 +712,14 @@ export const UploadMemePage: React.FC = () => {
                     htmlFor="tags"
                     className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
                   >
-                    Tags{" "}
-                    <span className="text-gray-500 dark:text-gray-400">
-                      (optional, max 5)
-                    </span>
+                    Tags <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-2 sm:space-y-3">
-                    <div className="flex flex-col xs:flex-row gap-2">
+                    <div className="flex flex-row xs:flex-row gap-2">
                       <input
                         type="text"
                         id="tags"
-                        placeholder="Type tags and press Enter (e.g., funny, cats, memes)"
+                        placeholder="Type tags and press Enter"
                         value={tagInput}
                         onChange={(e) => setTagInput(e.target.value)}
                         onKeyDown={handleTagKeyDown}
@@ -725,7 +728,7 @@ export const UploadMemePage: React.FC = () => {
                       <button
                         onClick={handleAddTag}
                         disabled={!tagInput.trim() || tags.length >= 5}
-                        className="px-3 sm:px-4 py-2.5 sm:py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg xs:rounded-l-none xs:rounded-r-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-manipulation"
+                        className="px-3 sm:px-4 py-2.5 sm:py-3 bg-blue-600 dark:bg-blue-700 !text-white rounded-lg xs:rounded-l-none xs:rounded-r-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-manipulation"
                       >
                         <Tag className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
@@ -735,18 +738,17 @@ export const UploadMemePage: React.FC = () => {
                       commas
                     </div>
                   </div>
-
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
                       {tags.map((tag) => (
                         <div
                           key={tag.id}
-                          className="flex items-center bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 text-blue-800 dark:text-blue-300 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium"
+                          className="flex items-center bg-blue-600 !text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium"
                         >
                           #{tag.name}
                           <button
                             onClick={() => handleRemoveTag(tag.id)}
-                            className="ml-1 sm:ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors touch-manipulation"
+                            className="ml-1 sm:ml-2 !text-white hover:text-gray-200 transition-colors touch-manipulation"
                           >
                             <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                           </button>
@@ -756,7 +758,7 @@ export const UploadMemePage: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex flex-col xs:flex-row justify-between items-center gap-3 sm:gap-4 pt-2 sm:pt-4">
+                <div className="flex flex-row xs:flex-row justify-between items-center pt-2 sm:pt-4">
                   <button
                     onClick={goToPreviousStep}
                     className="w-full xs:w-auto bg-white dark:bg-gray-600 text-black dark:text-gray-300 px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors flex items-center justify-center text-xs xs:text-sm sm:text-base touch-manipulation"
@@ -768,9 +770,9 @@ export const UploadMemePage: React.FC = () => {
                   <button
                     onClick={handleUpload}
                     disabled={
-                      !selectedFile || !title.trim() || !selectedCategory
+                      !selectedFile || !title.trim() || !selectedCategory || tags.length === 0
                     }
-                    className="w-full xs:w-auto bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 xs:px-6 sm:px-8 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg hover:shadow-xl text-xs xs:text-sm sm:text-base touch-manipulation"
+                    className="w-full xs:w-auto bg-blue-600 !text-white px-4 xs:px-6 sm:px-8 py-2 xs:py-2.5 sm:py-3 rounded-lg xs:rounded-xl hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium shadow-lg hover:shadow-xl text-xs xs:text-sm sm:text-base touch-manipulation"
                   >
                     <Upload className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
                     <span className="hidden xs:inline">Upload Meme</span>
@@ -779,7 +781,7 @@ export const UploadMemePage: React.FC = () => {
                 </div>
 
                 {uploadProgress !== null && (
-                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg xs:rounded-xl">
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg xs:rounded-xl">
                     <div className="flex justify-between text-xs sm:text-sm text-blue-600 dark:text-blue-400 mb-2">
                       <span className="font-medium">
                         Uploading your meme...
@@ -788,7 +790,7 @@ export const UploadMemePage: React.FC = () => {
                     </div>
                     <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2 sm:h-3">
                       <div
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 sm:h-3 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-blue-400 to-blue-700 h-2 sm:h-3 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       ></div>
                     </div>

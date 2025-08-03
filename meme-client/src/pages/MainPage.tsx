@@ -229,7 +229,7 @@ export const MainPage: React.FC = () => {
       <div className="lg:hidden sticky top-0 left-0 right-0 z-40 bg-white dark:bg-[#0f0f0f]/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+            <h1 className="text-xl font-bold bg-blue-600 text-transparent bg-clip-text">
               MemeVault
             </h1>
             {!isOnline && (

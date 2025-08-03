@@ -6,10 +6,6 @@ interface SyncStatusProps {
   className?: string;
 }
 
-/**
- * Component to display sync status (useful for debugging)
- * Can be temporarily added to any component to monitor sync status
- */
 export const SyncStatus: React.FC<SyncStatusProps> = ({ 
   showDetails = false, 
   className = "" 

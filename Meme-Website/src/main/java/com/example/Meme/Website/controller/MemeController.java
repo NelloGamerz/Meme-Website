@@ -64,11 +64,11 @@ public class MemeController {
     }
 
     @DeleteMapping("/delete/{memeId}")
-    public ResponseEntity<?> deleteMeme(@PathVariable String memeId) throws Exception {
+    public ResponseEntity<?> deleteMeme(
+        @PathVariable String memeId) throws Exception {
         return memeService.deleteMeme(memeId);
     }
 
-    // using
     @GetMapping("/recomendedMemes/{memeId}")
     public ResponseEntity<Map<String, Object>> getRecomendedMemes(
             @PathVariable String memeId,

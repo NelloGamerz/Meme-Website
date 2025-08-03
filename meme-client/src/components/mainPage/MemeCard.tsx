@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Heart,
   MessageCircle,
@@ -43,6 +44,7 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const usernameRef = useRef<HTMLSpanElement>(null);
   const usernameContainerRef = useRef<HTMLDivElement>(null);
+  const moreVertButtonRef = useRef<HTMLButtonElement>(null);
   const [isHovered, setIsHovered] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth < 768;
@@ -53,6 +55,7 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   const [isScrollPaused, setIsScrollPaused] = useState(false);
   const [localIsLiked, setLocalIsLiked] = useState(false);
   const [localIsSaved, setLocalIsSaved] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const isOptionsOpen = activeOptionsId === meme?.id;
 
   React.useEffect(() => {
@@ -215,6 +218,26 @@ export const MemeCard: React.FC<MemeCardProps> = ({
     setIsScrollPaused(false);
   };
 
+  const calculateDropdownPosition = () => {
+    if (moreVertButtonRef.current) {
+      const rect = moreVertButtonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 4, // 4px gap
+        left: rect.left + window.scrollX,
+      });
+    }
+  };
+
+  const handleOptionsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onOptionsClick) {
+      if (!isOptionsOpen) {
+        calculateDropdownPosition();
+      }
+      onOptionsClick(isOptionsOpen ? null : meme.id);
+    }
+  };
+
   return (
     <div
       className="relative group cursor-pointer rounded-2xl lg:rounded-3xl overflow-hidden bg-white shadow-lg md:hover:shadow-2xl transition-all duration-300 md:hover:-translate-y-2 break-inside-avoid sm:mb-1 lg:mb-1 w-full inline-block border border-gray-100"
@@ -258,40 +281,18 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
         {isOwnProfile && activeTab === "uploaded" && (
           <div
-            className="absolute top-2 left-2 lg:top-4 lg:left-4 transition-opacity duration-200"
+            className="absolute top-2 left-2 lg:top-4 lg:left-4 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100 transform md:translate-y-2 md:group-hover:translate-y-0 opacity-100"
             data-meme-id={meme.id}
           >
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onOptionsClick) {
-                  onOptionsClick(isOptionsOpen ? null : meme.id);
-                }
-              }}
+              ref={moreVertButtonRef}
+              onClick={handleOptionsClick}
               className="p-2 lg:p-3 bg-white/90 rounded-full hover:bg-white transition-colors shadow-xl"
             >
               <MoreVertical className="w-2 h-2 lg:w-5 lg:h-5 !text-black" />
             </button>
 
-            {isOptionsOpen && (
-              <div className="absolute left-0 top-full mt-1 lg:mt-2 w-32 lg:w-40 bg-white rounded-xl shadow-xl border py-1.5 z-50">
-                <button
-                  onClick={handleShare}
-                  className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
-                >
-                  <Share className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
-                  <span>Share</span>
-                </button>
 
-                <button
-                  onClick={handleDelete}
-                  className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
-                >
-                  <Trash className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
-                  <span>Delete</span>
-                </button>
-              </div>
-            )}
           </div>
         )}
         <div
@@ -387,6 +388,35 @@ export const MemeCard: React.FC<MemeCardProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Portaled dropdown menu */}
+      {isOptionsOpen && createPortal(
+        <div 
+          className="fixed w-32 lg:w-40 bg-white rounded-xl shadow-xl border py-1.5 z-[9999]"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+          }}
+        >
+          <button
+            onClick={handleShare}
+            className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
+          >
+            <Share className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
+            <span>Share</span>
+          </button>
+
+          <button
+            onClick={handleDelete}
+            className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
+          >
+            <Trash className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
+            <span>Delete</span>
+          </button>
+        </div>,
+        document.body
+      )}
+      
       <style>{`
         @keyframes scroll-text {
           0% {
