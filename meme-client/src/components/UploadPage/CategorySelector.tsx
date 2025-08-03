@@ -107,7 +107,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCate
   const handleWheel = (event: React.WheelEvent) => {
     if (!isOpen || isMobile) return
 
-    event.preventDefault()
+    // event.preventDefault()
     event.stopPropagation()
 
     if (scrollTimeoutRef.current) {
