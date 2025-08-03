@@ -6,10 +6,6 @@ interface ThemeToggleProps {
   showLabel?: boolean;
 }
 
-/**
- * Theme toggle component that demonstrates the new IndexedDB + backend sync functionality
- * Flow: User clicks → Backend call → Success → Save to IndexedDB → Update UI
- */
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({ 
   className = "", 
   showLabel = true 
