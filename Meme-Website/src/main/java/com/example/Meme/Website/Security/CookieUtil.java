@@ -9,16 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class CookieUtil {
 
-    // public void addCookie(HttpServletResponse response, String name, String
-    // value, int maxAge) {
-    // Cookie cookie = new Cookie(name, value);
-    // cookie.setPath("/");
-    // cookie.setHttpOnly(true);
-    // cookie.setSecure(true);
-    // cookie.setMaxAge(maxAge);
-    // response.addCookie(cookie);
-    // }
-
     public void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         String cookie = String.format(
                 "%s=%s; Max-Age=%d; Path=/; HttpOnly; Secure; SameSite=None",
