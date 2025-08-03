@@ -191,9 +191,6 @@ export const NotificationsList: React.FC = () => {
       </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-bold text-gray-900">Notifications</h2>
-        </div>
 
         <div className="divide-y divide-gray-50">
           {isLoading ? (

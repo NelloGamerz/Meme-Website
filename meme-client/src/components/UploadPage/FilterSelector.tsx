@@ -4,8 +4,6 @@ import {
   Check,
   X,
   FilterIcon,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
 } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -508,13 +506,13 @@ export const FilterSelector: React.FC<FilterSelectorProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleFilterSelect(null)}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
+            className="text-sm text-blue-600 dark:text-blue-500 font-medium transition-colors"
           >
             Reset to Original
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="sm:hidden flex items-center gap-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-sm rounded-full px-4 py-2 transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
+            className="sm:hidden flex items-center gap-2 bg-blue-500 active:bg-blue-700 !text-white text-sm rounded-full px-4 py-2 transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
           >
             <FilterIcon className="w-4 h-4" />
             <span>All Filters</span>
@@ -551,36 +549,20 @@ export const FilterSelector: React.FC<FilterSelectorProps> = ({
         )}
 
         {selectedFilter && (
-          <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-medium">
+          <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm !text-white px-3 py-1.5 rounded-full text-sm font-medium">
             {selectedFilter.name}
           </div>
         )}
       </div>
 
       <div className="relative hidden sm:block">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center justify-between">
+        <h4 className="pb-4 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center justify-between">
           <span>Filters ({filters.length} available)</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={scrollLeft}
-              className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={scrollRight}
-              className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
         </h4>
 
         <div
           ref={scrollContainerRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
+          className="p-4 h-32 flex gap-3 overflow-x-auto custom-scrollbar snap-mandatory scroll-smooth"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -645,7 +627,7 @@ export const FilterSelector: React.FC<FilterSelectorProps> = ({
                   </div>
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="p-2 rounded-full dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    className="p-2 rounded-full  hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>

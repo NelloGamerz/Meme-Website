@@ -1216,7 +1216,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           state.error = null;
         });
 
-        await api.delete(`/memes/${id}`);
+        await api.delete(`/memes/delete/${id}`);
 
         set((state) => {
           state.memes = state.memes.filter((meme: Meme) => meme.id !== id);
