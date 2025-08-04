@@ -19,6 +19,9 @@ import {
 import { useUserStore } from "../store/useUserStore";
 import api from "../hooks/api";
 import type { AxiosProgressEvent } from "axios";
+import toast from "react-hot-toast";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { useNavigate } from "react-router-dom";
 
 type MediaType = "image" | "video" | "gif" | null;
 
@@ -30,6 +33,7 @@ interface MemeTag {
 }
 
 export const UploadMemePage: React.FC = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<UploadStep>("select");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -49,6 +53,11 @@ export const UploadMemePage: React.FC = () => {
     publicUrl: string;
     tmepKey: string;
   } | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  
+  // Background upload states
+  const [backgroundUploadPromise, setBackgroundUploadPromise] = useState<Promise<boolean> | null>(null);
+  const [backgroundUploadStatus, setBackgroundUploadStatus] = useState<'idle' | 'uploading' | 'completed' | 'failed'>('idle');
 
   const profilePictureUrl = useUserStore.use.loggedInUserProfilePictureUrl();
 
@@ -64,6 +73,9 @@ export const UploadMemePage: React.FC = () => {
     setTagInput("");
     setUploadProgress(null);
     setFilterProcessResponse(null);
+    setShowSuccessDialog(false);
+    setBackgroundUploadPromise(null);
+    setBackgroundUploadStatus('idle');
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -142,7 +154,7 @@ export const UploadMemePage: React.FC = () => {
     try {
       const validation = await validateMeme(file);
       if (!validation.valid) {
-        alert(validation.message);
+        toast.error(validation.message);
         return;
       }
 
@@ -168,7 +180,7 @@ export const UploadMemePage: React.FC = () => {
         }
       }
     } catch (error) {
-      alert("Error validating file. Please try again.");
+      toast.error("Error validating file. Please try again.");
     }
   };
 
@@ -219,11 +231,11 @@ export const UploadMemePage: React.FC = () => {
         setFilterProcessResponse(uploadResponse);
         return true;
       } else {
-        alert("Failed to process upload. Please try again.");
+        toast.error("Failed to process upload. Please try again.");
         return false;
       }
     } catch (error) {
-      alert("Failed to upload. Please try again.");
+      toast.error("Failed to upload. Please try again.");
       return false;
     }
   };
@@ -234,6 +246,14 @@ export const UploadMemePage: React.FC = () => {
       handleAddTag();
     }
   };
+
+  // Helper function to calculate total character count of all tags
+  const getTotalTagsCharacterCount = (currentTags: MemeTag[], newTagNames: string[] = []) => {
+    const existingTagsLength = currentTags.reduce((total, tag) => total + tag.name.length, 0);
+    const newTagsLength = newTagNames.reduce((total, tagName) => total + tagName.length, 0);
+    return existingTagsLength + newTagsLength;
+  };
+
   const handleAddTag = () => {
     if (!tagInput.trim()) return;
 
@@ -242,8 +262,10 @@ export const UploadMemePage: React.FC = () => {
       .map((tag) => tag.trim())
       .filter((tag) => tag !== "");
 
-    if (tags.length + inputTags.length > 5) {
-      alert("Maximum 5 tags allowed");
+    // Check if adding these tags would exceed the 250 character limit
+    const totalCharacters = getTotalTagsCharacterCount(tags, inputTags);
+    if (totalCharacters > 250) {
+      toast.error("Tags cannot exceed 250 characters in total");
       return;
     }
 
@@ -260,13 +282,14 @@ export const UploadMemePage: React.FC = () => {
     setTags(tags.filter((tag) => tag.id !== id));
   };
 
-  const processFilterAndPrepareUpload = async () => {
+  const startBackgroundUpload = async (): Promise<boolean> => {
     if (!selectedFile) {
-      alert("No file selected");
       return false;
     }
 
     try {
+      setBackgroundUploadStatus('uploading');
+      
       let fileToUpload: File | Blob = selectedFile;
 
       if (mediaType === "image") {
@@ -309,30 +332,27 @@ export const UploadMemePage: React.FC = () => {
           tmepKey: response.data[0].tmepKey,
         };
 
-        try {
-          const uploadRes = await fetch(filterResponse.uploadedUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": selectedFile.type,
-            },
-            body: fileToUpload,
-          });
+        const uploadRes = await fetch(filterResponse.uploadedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": selectedFile.type,
+          },
+          body: fileToUpload,
+        });
 
-          if (!uploadRes.ok) {
-            throw new Error("Failed to upload to S3.");
-          }
-          setFilterProcessResponse(filterResponse);
-          return true;
-        } catch (s3Error) {
-          alert("Failed to upload to S3. Please try again.");
-          return false;
+        if (!uploadRes.ok) {
+          throw new Error("Failed to upload to S3.");
         }
+        
+        setFilterProcessResponse(filterResponse);
+        setBackgroundUploadStatus('completed');
+        return true;
       } else {
-        alert("Failed to process filter. Please try again.");
+        setBackgroundUploadStatus('failed');
         return false;
       }
     } catch (error) {
-      alert("Failed to process filter. Please try again.");
+      setBackgroundUploadStatus('failed');
       return false;
     }
   };
@@ -383,7 +403,7 @@ export const UploadMemePage: React.FC = () => {
 
   const handleUpload = async () => {
     if (!selectedFile || !title.trim() || !selectedCategory || tags.length === 0) {
-      alert("Please provide a file, title, category, and at least one tag");
+      toast.error("Please provide a file, title, category, and at least one tag");
       return;
     }
 
@@ -393,6 +413,29 @@ export const UploadMemePage: React.FC = () => {
           tags.map((tag) => tag.name.trim()).filter((tag) => tag !== "")
         ),
       ];
+
+      // Wait for background upload to complete if it's still running
+      if (backgroundUploadPromise && backgroundUploadStatus === 'uploading') {
+        setUploadProgress(0);
+        toast.loading("Waiting for media upload to complete...", { id: 'background-upload' });
+        
+        const backgroundSuccess = await backgroundUploadPromise;
+        toast.dismiss('background-upload');
+        
+        if (!backgroundSuccess) {
+          toast.error("Media upload failed. Please try again.");
+          setCurrentStep("filter");
+          return;
+        }
+      }
+
+      // Check if background upload failed
+      if (backgroundUploadStatus === 'failed') {
+        toast.error("Media upload failed. Please go back to the filter step and try again.");
+        setCurrentStep("filter");
+        return;
+      }
+
       if (filterProcessResponse) {
         setUploadProgress(0);
         const memeUploadData = {
@@ -418,12 +461,12 @@ export const UploadMemePage: React.FC = () => {
         });
 
         setTimeout(() => {
-          alert("Meme uploaded successfully!");
-          resetUpload();
+          toast.success("Meme uploaded successfully!");
+          setShowSuccessDialog(true);
         }, 500);
       } else {
         if (mediaType === "image") {
-          alert(
+          toast.error(
             "Image processing data is missing. Please go back to the filter step and try again."
           );
           setCurrentStep("filter");
@@ -435,7 +478,7 @@ export const UploadMemePage: React.FC = () => {
         }
       }
     } catch (error) {
-      alert("Failed to upload meme. Please try again.");
+      toast.error("Failed to upload meme. Please try again.");
       setUploadProgress(null);
     }
   };
@@ -448,10 +491,10 @@ export const UploadMemePage: React.FC = () => {
         setCurrentStep("details");
       }
     } else if (currentStep === "filter") {
-      const success = await processFilterAndPrepareUpload();
-      if (success) {
-        setCurrentStep("details");
-      }
+      // Start background upload and move to next step immediately
+      const uploadPromise = startBackgroundUpload();
+      setBackgroundUploadPromise(uploadPromise);
+      setCurrentStep("details");
     }
   };
 
@@ -581,7 +624,7 @@ export const UploadMemePage: React.FC = () => {
                         Click to select an image, video, or GIF
                       </p>
                       <p className="text-[10px] xs:text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                        Supported: JPG, PNG, GIF, MP4 • Max size: 10MB
+                         Supported: JPG, PNG, GIF, MP4 • Image: max 1MB • Video: max 2MB
                       </p>
                     </div>
                   )}
@@ -727,15 +770,14 @@ export const UploadMemePage: React.FC = () => {
                       />
                       <button
                         onClick={handleAddTag}
-                        disabled={!tagInput.trim() || tags.length >= 5}
+                        disabled={!tagInput.trim() || getTotalTagsCharacterCount(tags, tagInput.split(",").map(tag => tag.trim()).filter(tag => tag !== "")) > 250}
                         className="px-3 sm:px-4 py-2.5 sm:py-3 bg-blue-600 dark:bg-blue-700 !text-white rounded-lg xs:rounded-l-none xs:rounded-r-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center touch-manipulation"
                       >
                         <Tag className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
                     <div className="text-[10px] xs:text-xs text-gray-500 dark:text-gray-400">
-                      Press Enter to add tags • Separate multiple tags with
-                      commas
+                      Press Enter to add tags • Separate multiple tags with commas • {getTotalTagsCharacterCount(tags)}/250 characters
                     </div>
                   </div>
                   {tags.length > 0 && (
@@ -801,6 +843,24 @@ export const UploadMemePage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      <ConfirmDialog
+        isOpen={showSuccessDialog}
+        onClose={() => {
+          setShowSuccessDialog(false);
+          resetUpload();
+          navigate('/');
+        }}
+        onConfirm={() => {
+          setShowSuccessDialog(false);
+          resetUpload();
+        }}
+        title="Upload Successful!"
+        message="Your meme has been uploaded successfully and is now live on the platform. Would you like to upload another meme?"
+        confirmText="Upload Another"
+        cancelText="Done"
+        confirmButtonClass="bg-green-600 hover:bg-green-700 text-white"
+      />
     </div>
   );
 };

@@ -37,7 +37,6 @@ export const ProfilePage: React.FC = () => {
   const loggedInUserFollowers = useUserStore.use.loggedInUserFollowers()
   const loggedInUserFollowing = useUserStore.use.loggedInUserFollowing()
 
-  
   const viewedUserProfile = useUserStore.use.viewedUserProfile()
   const viewedUserName = useUserStore.use.viewedUserName()
   const viewedUserFollowers = useUserStore.use.viewedUserFollowers()
@@ -282,10 +281,26 @@ export const ProfilePage: React.FC = () => {
         if (response && response.followers && Array.isArray(response.followers)) {          
           useUserStore.setState(state => {
             if (isOwnProfile) {
-              state.loggedInUserFollowersCount = response.followersCount ?? 0;
+              // Only update the followers list, keep the existing count
               state.loggedInUserFollowers = response.followers ?? [];
             } else {
-              state.viewedUserFollowersCount = response.followersCount ?? 0;
+              // Only update the followers list, keep the existing count
+              state.viewedUserFollowers = response.followers ?? [];
+            }
+            return state;
+          });
+        }
+      } else {
+        // Just fetch the followers list without updating the count
+        const response = await fetchFollowData('followers', 0, 50, username);
+        
+        if (response && response.followers && Array.isArray(response.followers)) {
+          useUserStore.setState(state => {
+            if (isOwnProfile) {
+              // Only update the followers list, keep the existing count
+              state.loggedInUserFollowers = response.followers ?? [];
+            } else {
+              // Only update the followers list, keep the existing count
               state.viewedUserFollowers = response.followers ?? [];
             }
             return state;
@@ -329,15 +344,31 @@ export const ProfilePage: React.FC = () => {
         if (response && response.following && Array.isArray(response.following)) {
           useUserStore.setState(state => {
             if (isOwnProfile) {
-              state.loggedInUserFollowingCount = response.followingCount ?? 0;
+              // Only update the following list, keep the existing count
               state.loggedInUserFollowing = response.following ?? [];
             } else {
-              state.viewedUserFollowingCount = response.followingCount ?? 0;
+              // Only update the following list, keep the existing count
               state.viewedUserFollowing = response.following ?? [];
             }
             return state;
           });
         } 
+      } else {
+        // Just fetch the following list without updating the count
+        const response = await fetchFollowData('following', 0, 50, username);
+        
+        if (response && response.following && Array.isArray(response.following)) {
+          useUserStore.setState(state => {
+            if (isOwnProfile) {
+              // Only update the following list, keep the existing count
+              state.loggedInUserFollowing = response.following ?? [];
+            } else {
+              // Only update the following list, keep the existing count
+              state.viewedUserFollowing = response.following ?? [];
+            }
+            return state;
+          });
+        }
       }
     } catch (error) {} finally {
       setFollowingLoading(false);

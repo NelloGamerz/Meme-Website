@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import DOMPurify from "dompurify";
 import useWebSocketStore from "../../hooks/useWebSockets.ts";
 import { getCurrentAuthUser } from "../../utils/authHelpers";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 interface MemeCardProps {
   meme: Meme;
@@ -40,7 +41,7 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const authUser = getCurrentAuthUser();
-  const user = authUser ? { username: authUser.username} : {};
+  const user = authUser ? { username: authUser.username } : {};
   const videoRef = useRef<HTMLVideoElement>(null);
   const usernameRef = useRef<HTMLSpanElement>(null);
   const usernameContainerRef = useRef<HTMLDivElement>(null);
@@ -56,6 +57,11 @@ export const MemeCard: React.FC<MemeCardProps> = ({
   const [localIsLiked, setLocalIsLiked] = useState(false);
   const [localIsSaved, setLocalIsSaved] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isMouseOverCard = useRef(false);
+  const isMouseOverDropdown = useRef(false);
+  const hoverTimeout = useRef<NodeJS.Timeout | null>(null);
   const isOptionsOpen = activeOptionsId === meme?.id;
 
   React.useEffect(() => {
@@ -66,8 +72,26 @@ export const MemeCard: React.FC<MemeCardProps> = ({
           (onOptionsClick ?? (() => {}))(null);
         }
       };
+
+      const handleScroll = () => {
+        // Close dropdown on scroll for better UX
+        (onOptionsClick ?? (() => {}))(null);
+      };
+
+      const handleResize = () => {
+        // Close dropdown on resize
+        (onOptionsClick ?? (() => {}))(null);
+      };
+
       document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true); // Use capture phase to catch all scroll events
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+        window.removeEventListener("scroll", handleScroll, true);
+        window.removeEventListener("resize", handleResize);
+      };
     }
   }, [meme?.id, isOptionsOpen, onOptionsClick]);
 
@@ -98,6 +122,33 @@ export const MemeCard: React.FC<MemeCardProps> = ({
       setLocalIsSaved(storeIsSaved);
     }
   }, [meme, likedMemes, savedMemes]);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout.current) {
+        clearTimeout(hoverTimeout.current);
+      }
+    };
+  }, []);
+
+  // Force hover state when dropdown is open AND mouse is over card or dropdown
+  useEffect(() => {
+    if (isOptionsOpen) {
+      // Only force hover if mouse is actually over the card or dropdown
+      if (isMouseOverCard.current || isMouseOverDropdown.current) {
+        setIsHovered(true);
+        if (hoverTimeout.current) {
+          clearTimeout(hoverTimeout.current);
+          hoverTimeout.current = null;
+        }
+      }
+    } else {
+      // When dropdown closes, check if we should maintain hover
+      if (!isMouseOverCard.current && !isMouseOverDropdown.current) {
+        handleGlobalHoverChange();
+      }
+    }
+  }, [isOptionsOpen]);
 
   const memeUrl = meme.url || meme.mediaUrl || "";
   const sanitizeUrl = DOMPurify.sanitize(memeUrl ? encodeURI(memeUrl) : "");
@@ -168,20 +219,32 @@ export const MemeCard: React.FC<MemeCardProps> = ({
     (onOptionsClick ?? (() => {}))(null);
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm("Delete this meme?")) {
-      try {
-        await deleteMeme(meme.id);
-        if (onOptionsClick) onOptionsClick(null);
-        toast.success("Deleted!");
-      } catch {
-        toast.error("Failed to delete");
-      }
+    setShowDeleteConfirm(true);
+    (onOptionsClick ?? (() => {}))(null);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteMeme(meme.id);
+      if (onOptionsClick) onOptionsClick(null);
+      toast.success("Deleted!");
+      // Don't reset isDeleting here - let the component unmount or parent handle removal
+    } catch {
+      toast.error("Failed to delete");
+      setIsDeleting(false);
     }
   };
 
-  const navigateToMemeDetail = () => navigate(`/meme/${meme.id}`);
+  const navigateToMemeDetail = () => {
+    // Prevent navigation if meme is being deleted or delete dialog is open
+    if (isDeleting || showDeleteConfirm) {
+      return;
+    }
+    navigate(`/meme/${meme.id}`);
+  };
   const navigateToProfile = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/profile/${meme.uploader}`);
@@ -191,9 +254,31 @@ export const MemeCard: React.FC<MemeCardProps> = ({
     return window.innerWidth < 768;
   };
 
+  const handleGlobalHoverChange = () => {
+    if (isMobileDevice()) return;
+
+    if (hoverTimeout.current) {
+      clearTimeout(hoverTimeout.current);
+      hoverTimeout.current = null;
+    }
+
+    if (isMouseOverCard.current || isMouseOverDropdown.current) {
+      setIsHovered(true);
+    } else {
+      hoverTimeout.current = setTimeout(() => {
+        setIsHovered(false);
+        // Close dropdown when mouse leaves both card and dropdown
+        if (isOptionsOpen && onOptionsClick) {
+          onOptionsClick(null);
+        }
+      }, 150);
+    }
+  };
+
   const handleMouseEnter = () => {
     if (!isMobileDevice()) {
-      setIsHovered(true);
+      isMouseOverCard.current = true;
+      handleGlobalHoverChange();
       if (isVideo && videoRef.current) {
         videoRef.current.play().catch(() => {});
       }
@@ -202,7 +287,8 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   const handleMouseLeave = () => {
     if (!isMobileDevice()) {
-      setIsHovered(false);
+      isMouseOverCard.current = false;
+      handleGlobalHoverChange();
       if (isVideo && videoRef.current) {
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
@@ -230,20 +316,39 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   const handleOptionsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onOptionsClick) {
-      if (!isOptionsOpen) {
-        calculateDropdownPosition();
-      }
-      onOptionsClick(isOptionsOpen ? null : meme.id);
+
+    if (!isOptionsOpen) {
+      calculateDropdownPosition();
+      // Don't force hover state - let natural hover handle it
+      onOptionsClick?.(meme.id);
+    } else {
+      isMouseOverDropdown.current = false;
+      onOptionsClick?.(null);
+      handleGlobalHoverChange(); // allow un-hover if needed
     }
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if delete dialog is open or meme is being deleted
+    if (showDeleteConfirm || isDeleting) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    navigateToMemeDetail();
   };
 
   return (
     <div
-      className="relative group cursor-pointer rounded-2xl lg:rounded-3xl overflow-hidden bg-white shadow-lg md:hover:shadow-2xl transition-all duration-300 md:hover:-translate-y-2 break-inside-avoid sm:mb-1 lg:mb-1 w-full inline-block border border-gray-100"
+      className={cn(
+        "relative group rounded-2xl lg:rounded-3xl overflow-hidden bg-white shadow-lg md:hover:shadow-2xl transition-all duration-300 md:hover:-translate-y-2 break-inside-avoid sm:mb-1 lg:mb-1 w-full inline-block border border-gray-100",
+        showDeleteConfirm || isDeleting
+          ? "cursor-default opacity-75"
+          : "cursor-pointer"
+      )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={navigateToMemeDetail}
+      onClick={handleCardClick}
     >
       <div className="relative">
         {isVideo ? (
@@ -269,7 +374,9 @@ export const MemeCard: React.FC<MemeCardProps> = ({
           onClick={handleSave}
           className={cn(
             "absolute top-4 right-4 px-5 py-2.5 rounded-full font-semibold transition-all duration-200 shadow-xl hidden md:block",
-            "md:opacity-0 md:group-hover:opacity-100 transform md:translate-y-2 md:group-hover:translate-y-0"
+            isHovered 
+              ? "md:opacity-100 transform md:translate-y-0" 
+              : "md:opacity-0 transform md:translate-y-2"
           )}
           style={{
             backgroundColor: isSaved ? "#1f2937" : "#ffffff",
@@ -281,7 +388,12 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
         {isOwnProfile && activeTab === "uploaded" && (
           <div
-            className="absolute top-2 left-2 lg:top-4 lg:left-4 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100 transform md:translate-y-2 md:group-hover:translate-y-0 opacity-100"
+            className={cn(
+              "absolute top-2 left-2 lg:top-4 lg:left-4 transition-all duration-200 opacity-100",
+              isHovered 
+                ? "md:opacity-100 transform md:translate-y-0" 
+                : "md:opacity-0 transform md:translate-y-2"
+            )}
             data-meme-id={meme.id}
           >
             <button
@@ -291,14 +403,12 @@ export const MemeCard: React.FC<MemeCardProps> = ({
             >
               <MoreVertical className="w-2 h-2 lg:w-5 lg:h-5 !text-black" />
             </button>
-
-
           </div>
         )}
         <div
           className={cn(
-            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 lg:p-5 transition-opacity duration-200",
-            "md:opacity-0 md:group-hover:opacity-100 opacity-100"
+            "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 lg:p-5 transition-opacity duration-200 opacity-100",
+            isHovered ? "md:opacity-100" : "md:opacity-0"
           )}
         >
           <h3
@@ -388,35 +498,76 @@ export const MemeCard: React.FC<MemeCardProps> = ({
           </div>
         </div>
       </div>
-      
-      {/* Portaled dropdown menu */}
-      {isOptionsOpen && createPortal(
-        <div 
-          className="fixed w-32 lg:w-40 bg-white rounded-xl shadow-xl border py-1.5 z-[9999]"
-          style={{
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-          }}
-        >
-          <button
-            onClick={handleShare}
-            className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
-          >
-            <Share className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
-            <span>Share</span>
-          </button>
 
-          <button
-            onClick={handleDelete}
-            className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
+      {/* Portaled dropdown menu */}
+      {isOptionsOpen &&
+        createPortal(
+          <div
+            className="fixed w-32 lg:w-40 bg-white rounded-xl shadow-xl border py-1.5 z-[9999]"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+            data-meme-id={meme.id}
+            // onMouseEnter={() => {
+            //   isMouseOverDropdown.current = true;
+            //   handleGlobalHoverChange();
+            // }}
+            // onMouseLeave={() => {
+            //   isMouseOverDropdown.current = false;
+            //   handleGlobalHoverChange();
+            // }}
+
+            onMouseEnter={() => {
+              if (!isMobileDevice()) {
+                isMouseOverDropdown.current = true;
+                setIsHovered(true);
+                if (hoverTimeout.current) {
+                  clearTimeout(hoverTimeout.current);
+                  hoverTimeout.current = null;
+                }
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isMobileDevice()) {
+                isMouseOverDropdown.current = false;
+                handleGlobalHoverChange();
+              }
+            }}
           >
-            <Trash className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
-            <span>Delete</span>
-          </button>
-        </div>,
-        document.body
-      )}
-      
+            <button
+              onClick={handleShare}
+              className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
+            >
+              <Share className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
+              <span>Share</span>
+            </button>
+
+            <button
+              onClick={handleDelete}
+              className="w-full px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3"
+            >
+              <Trash className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4" />
+              <span>Delete</span>
+            </button>
+          </div>,
+          document.body
+        )}
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setIsDeleting(false);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Meme"
+        message="Are you sure you want to delete this meme? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
+      />
+
       <style>{`
         @keyframes scroll-text {
           0% {

@@ -259,6 +259,11 @@ const useRawUserStore = create<UserStore>()(
       return state.viewedUserFollowingCount || state.loggedInUserFollowingCount;
     },
 
+    get uploadCount() {
+      const state = get();
+      return state.viewedUserUploadCount || state.loggedInUserUploadCount;
+    },
+
     get Followers() {
       const state = get();
       return state.viewedUserFollowers.length > 0
