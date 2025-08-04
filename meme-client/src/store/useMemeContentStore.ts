@@ -1216,6 +1216,10 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           state.error = null;
         });
 
+        // Get the meme to check who uploaded it before deleting
+        const memeToDelete = useRawMemeContentStore.getState().memes.find((meme: Meme) => meme.id === id) ||
+                            useRawMemeContentStore.getState().memeList.find((meme: Meme) => meme.id === id);
+
         await api.delete(`/memes/delete/${id}`);
 
         set((state) => {
@@ -1239,6 +1243,34 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
           state.isLoading = false;
         });
+
+        // Update upload count in user store if the deleted meme belongs to the current user
+        if (memeToDelete) {
+          const currentUser = getCurrentAuthUser();
+          if (currentUser && memeToDelete.uploader === currentUser.username) {
+            // Import and update user store
+            const { useUserStore } = await import('./useUserStore');
+            useUserStore.setState((state) => {
+              // Update logged in user upload count
+              if (state.loggedInUserProfile && state.loggedInUserProfile.username === currentUser.username) {
+                state.loggedInUserUploadCount = Math.max(0, state.loggedInUserUploadCount - 1);
+              }
+              
+              // Update viewed user upload count if it's the same user
+              if (state.viewedUserProfile && state.viewedUserProfile.username === currentUser.username) {
+                state.viewedUserUploadCount = Math.max(0, state.viewedUserUploadCount - 1);
+              }
+              
+              // Update profile cache if exists
+              if (currentUser.username && state.profileCache[currentUser.username]) {
+                state.profileCache[currentUser.username].profile.uploadCount = 
+                  Math.max(0, state.profileCache[currentUser.username].profile.uploadCount - 1);
+              }
+              
+              return state;
+            });
+          }
+        }
       } catch (error) {
         console.error(`Error deleting meme ${id}:`, error);
         set((state) => {
