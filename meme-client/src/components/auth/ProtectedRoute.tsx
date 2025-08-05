@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const AnimatedMemeVault: React.FC = () => {
+const AnimatedMekoole: React.FC = () => {
   return (
     <div style={{
       display: 'flex',
@@ -21,7 +21,7 @@ const AnimatedMemeVault: React.FC = () => {
         display: 'flex',
         gap: '0.1em'
       }}>
-        {['M', 'e', 'm', 'e', 'V', 'a', 'u', 'l', 't'].map((letter, index) => (
+        {['M', 'e', 'k', 'o', 'o', 'l', 'e'].map((letter, index) => (
           <span
             key={index}
             style={{
@@ -55,7 +55,7 @@ const AnimatedMemeVault: React.FC = () => {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthContext();
 
-  if (isLoading || isAuthenticated === null) return <AnimatedMemeVault />;
+  if (isLoading || isAuthenticated === null) return <AnimatedMekoole />;
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;

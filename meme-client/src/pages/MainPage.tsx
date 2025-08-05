@@ -208,7 +208,7 @@ export const MainPage: React.FC = () => {
           <Bell className="w-12 h-12 text-white" />
         </div>
         <h3 className="text-2xl font-bold text-gray-800 mb-3">
-          Welcome to MemeVault!
+          Welcome to Mekoole!
         </h3>
         <p className="text-gray-600 max-w-md mb-6 leading-relaxed">
           Be the first to share something amazing! Start by uploading your first
@@ -230,7 +230,7 @@ export const MainPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold bg-blue-600 text-transparent bg-clip-text">
-              MemeVault
+              Mekool
             </h1>
             {!isOnline && (
               <div className="flex items-center gap-1 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">

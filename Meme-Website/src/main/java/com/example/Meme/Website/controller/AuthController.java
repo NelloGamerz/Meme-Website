@@ -52,7 +52,8 @@ public class AuthController {
             cookieUtil.addCookie(response, "username", user.getUsername(), 60 * 60 * 24 * 30);
         }
 
-        return result;
+        // return result;
+        return ResponseEntity.ok(Map.of("username", result.getBody().getUsername()));
     }
 
     @PostMapping("/login")
