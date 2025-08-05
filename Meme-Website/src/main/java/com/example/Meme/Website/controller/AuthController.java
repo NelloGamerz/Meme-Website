@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +47,7 @@ public class AuthController {
 
         RegisterResponse responseBody = result.getBody();
 
-        if (response.getStatus() == HttpServletResponse.SC_CREATED && responseBody != null) {
+        if (result.getStatusCode() == HttpStatus.CREATED && responseBody != null) {
             cookieUtil.addCookie(response, "access_token", responseBody.getToken(), 60);
             cookieUtil.addCookie(response, "username", user.getUsername(), 60 * 60 * 24 * 30);
         }
