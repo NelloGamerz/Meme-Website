@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import toast from "react-hot-toast"
+import { useNavigate } from "react-router-dom"
 import { useUserStore } from "../store/useUserStore"
 import { useWebSocketConnectionStore } from "../store/useWebSocketConnectionStore"
 import { useAuthStore } from "../store/useAuthStore"
@@ -63,6 +64,7 @@ export const useAuthCheck = () => {
 const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<AuthError | null>(null)
+  const navigate = useNavigate()
   const setUser = useAuthStore.use.setUser()
   const setAuthenticated = useAuthStore.use.setAuthenticated()
 
@@ -87,10 +89,9 @@ const useAuth = () => {
       setAuthenticated(true);
       
       const { handleAuthStateChange } = useUserStore.getState() as {
-        handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
+        handleAuthStateChange: (authUser: {username: string } | null) => Promise<void>;
       };
       await handleAuthStateChange({
-        userId: response.data.userId,
         username: response.data.username
       });
       
@@ -102,6 +103,8 @@ const useAuth = () => {
       window.dispatchEvent(new CustomEvent('auth-state-changed', {
         detail: { user: userData, isAuthenticated: true }
       }));
+
+      navigate("/")
       
       return response.data
     } catch (err) {
@@ -128,21 +131,16 @@ const useAuth = () => {
       toast.success("Successfully registered!")
       
       const userData = {
-        userId: response.data.userId,
         username: response.data.username,
-        email: response.data.email,
-        profilePicture: response.data.profilePicture,
-        name: response.data.name,
       };
       
       setUser(userData);
       setAuthenticated(true);
       
       const { handleAuthStateChange } = useUserStore.getState() as {
-        handleAuthStateChange: (authUser: { userId: string; username: string } | null) => Promise<void>;
+        handleAuthStateChange: (authUser: {username: string } | null) => Promise<void>;
       };
       await handleAuthStateChange({
-        userId: response.data.userId,
         username: response.data.username
       });
       
@@ -154,6 +152,8 @@ const useAuth = () => {
       window.dispatchEvent(new CustomEvent('auth-state-changed', {
         detail: { user: userData, isAuthenticated: true }
       }));
+      
+      navigate("/");
       
       return response.data
     } catch (err) {
