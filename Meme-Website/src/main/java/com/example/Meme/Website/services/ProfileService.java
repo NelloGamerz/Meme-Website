@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,7 +55,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ProfileService {
-
 
     @Autowired
     private userRepository userRepository;
@@ -186,7 +187,7 @@ public class ProfileService {
 
         cookieUtil.addCookie(httpResponse, "username", newUsername, (int) (refreshExpiryMinutes * 60));
 
-        redisService.set("username_update:" + userId, newUsername,  60, TimeUnit.MINUTES);
+        redisService.set("username_update:" + userId, newUsername, 60, TimeUnit.MINUTES);
 
         Map<String, String> response = new HashMap<>();
         response.put("previousUsername", previousUsername);
@@ -325,9 +326,14 @@ public class ProfileService {
 
     public ResponseEntity<?> getUserProfileMemes(String username, int offset, int limit, String typeString) {
         Optional<userModel> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
         userModel user = userOpt.get();
         String userId = user.getUserId();
         ActionType type;
+
         try {
             type = ActionType.valueOf(typeString.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -335,23 +341,32 @@ public class ProfileService {
         }
 
         int page = offset / limit;
-        Pageable pageable = PageRequest.of(page, limit);
-        boolean hasNext;
-
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "timestamp"));
         Slice<MemeIdDBO> memeIdSlice = userInteractionRepository.findMemeIdsByUserIdAndType(userId, type, pageable);
-        hasNext = memeIdSlice.hasNext();
+        boolean hasNext = memeIdSlice.hasNext();
 
-        Set<ObjectId> targetMemeIds = memeIdSlice.getContent().stream()
+        List<String> orderedMemeIds = memeIdSlice.getContent().stream()
                 .map(MemeIdDBO::getMemeId)
                 .filter(ObjectId::isValid)
-                .map(ObjectId::new)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
-        if (targetMemeIds.isEmpty()) {
+        if (orderedMemeIds.isEmpty()) {
             return ResponseEntity.ok(new MemeFeedResponse(Collections.emptyList(), hasNext));
         }
 
-        List<Meme> memeList = memeRepository.findByIdIn(targetMemeIds);
+        Set<ObjectId> targetMemeIds = orderedMemeIds.stream()
+                .map(ObjectId::new)
+                .collect(Collectors.toSet());
+
+        List<Meme> unsortedMemes = memeRepository.findByIdIn(targetMemeIds);
+
+        Map<String, Meme> memeMap = unsortedMemes.stream()
+                .collect(Collectors.toMap(Meme::getId, m -> m));
+
+        List<Meme> sortedMemes = orderedMemeIds.stream()
+                .map(memeMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         Slice<UserInteraction> interactionsSlice = userInteractionRepository.findByUserIdAndMemeIdInAndTypeIn(
                 userId,
@@ -368,7 +383,7 @@ public class ProfileService {
                     .add(interaction.getType());
         }
 
-        List<MemeDto> memeDtos = memeList.stream().map(meme -> {
+        List<MemeDto> memeDtos = sortedMemes.stream().map(meme -> {
             Set<ActionType> actions = interactionMap.getOrDefault(meme.getId(), Set.of());
             boolean liked = actions.contains(ActionType.LIKE);
             boolean saved = actions.contains(ActionType.SAVE);
