@@ -230,7 +230,7 @@ export const MainPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold bg-blue-600 text-transparent bg-clip-text">
-              Mekool
+              Mekoole
             </h1>
             {!isOnline && (
               <div className="flex items-center gap-1 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">
