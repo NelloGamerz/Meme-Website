@@ -126,7 +126,9 @@ const useAuth = () => {
       setIsLoading(true)
       setError(null)
 
-      const response = await axios.post(`${API_URL}auth/register`, data)
+      const response = await axios.post(`${API_URL}auth/register`, data, {
+        withCredentials:true,
+      })
 
       toast.success("Successfully registered!")
       
