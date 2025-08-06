@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="h-full w-60 bg-white dark:bg-gray-800 border-r border-gray-300 dark:border-gray-700 flex flex-col">
         <div className="flex items-center p-6">
           <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-600">
-            Meme Vault
+            Mekoole
           </h1>
         </div>
 
