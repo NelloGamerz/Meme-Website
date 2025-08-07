@@ -44,15 +44,20 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody userModel user, HttpServletResponse response) {
         ResponseEntity<RegisterResponse> result = authService.registerUser(user);
-
         RegisterResponse responseBody = result.getBody();
 
         if (result.getStatusCode() == HttpStatus.CREATED && responseBody != null) {
             cookieUtil.addCookie(response, "access_token", responseBody.getToken(), 60);
             cookieUtil.addCookie(response, "username", user.getUsername(), 60 * 60 * 24 * 30);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(Map.of("username", responseBody.getUsername()));
         }
 
-        return ResponseEntity.ok(Map.of("username", result.getBody().getUsername()));
+        return ResponseEntity
+                .status(result.getStatusCode())
+                .body(Map.of("error", "Registration failed"));
     }
 
     @PostMapping("/login")

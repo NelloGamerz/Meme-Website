@@ -12,6 +12,7 @@ import type {
 import { useWebSocketStore } from "../hooks/useWebSockets";
 import { mapApiMemeToMeme } from "../utils/memeMappers";
 import { getCurrentAuthUser } from "../utils/authHelpers";
+import { useCacheStore } from "./useCacheStore";
 
 let currentMemeId: string | null = null;
 
@@ -36,18 +37,6 @@ interface MemeContentState {
   hasMoreMemes: boolean;
 
   userDataLoaded: boolean;
-
-  profileTabsCache: {
-    [userId: string]: {
-      [tabType: string]: {
-        memes: Meme[];
-        hasMore: boolean;
-        total: number;
-        timestamp: number;
-        offset: number;
-      };
-    };
-  };
 
   wsUnsubscribe: (() => void) | null;
 }
@@ -117,8 +106,7 @@ interface MemeContentActions {
   ) => void;
   updateCommentInStore: (comment: Comment) => void;
   forceAddComment: (comment: Comment) => void;
-
-  clearProfileTabCache: (userId: string, tabType?: string) => void;
+  addNewMemeToProfile: (meme: Meme, tabType?: string) => void;
 
   resetUserData: () => void;
 }
@@ -143,11 +131,29 @@ const useRawMemeContentStore = create<MemeContentStore>()(
     currentPage: 1,
     hasMoreMemes: true,
     userDataLoaded: false,
-    profileTabsCache: {},
     wsUnsubscribe: null,
 
     fetchMemes: async () => {
       try {
+        // Check cache first
+        const cacheStore = useCacheStore.getState() as any;
+        const cachedData = cacheStore.getMainPageCache();
+        
+        if (cachedData) {
+          console.log("Loading main page data from cache");
+          set((state) => {
+            state.memes = cachedData.memes;
+            state.likedMemes = cachedData.likedMemes;
+            state.savedMemes = cachedData.savedMemes;
+            state.currentPage = cachedData.currentPage;
+            state.hasMoreMemes = cachedData.hasMoreMemes;
+            state.isLoading = false;
+            state.error = null;
+            state.userDataLoaded = true;
+          });
+          return;
+        }
+
         set((state) => {
           state.isLoading = true;
           state.error = null;
@@ -214,6 +220,24 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             savedMemeIds.includes(meme.id)
           );
 
+          const currentState = useRawMemeContentStore.getState();
+          
+          // Cache the data
+          cacheStore.setMainPageCache({
+            memes,
+            likedMemes,
+            savedMemes,
+            currentPage: 1,
+            hasMoreMemes: currentState.hasMoreMemes,
+            allPages: {
+              1: {
+                memes,
+                likedMemes,
+                savedMemes,
+              }
+            }
+          });
+
           set((state) => {
             state.memes = memes;
             state.likedMemes = likedMemes;
@@ -222,6 +246,22 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             state.userDataLoaded = true; 
           });
         } else {
+          // Cache the data for non-authenticated users too
+          cacheStore.setMainPageCache({
+            memes,
+            likedMemes: [],
+            savedMemes: [],
+            currentPage: 1,
+            hasMoreMemes: memes.length >= 10, // Assume more if we got full page
+            allPages: {
+              1: {
+                memes,
+                likedMemes: [],
+                savedMemes: [],
+              }
+            }
+          });
+
           set((state) => {
             state.memes = memes;
             state.isLoading = false;
@@ -319,6 +359,26 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             state.hasMoreMemes = response.data.hasNextPage === true;
             state.isLoadingMore = false;
           });
+
+          // Update cache with the new page data
+          const cacheStore = useCacheStore.getState() as any;
+          const newLikedMemes = newMemes.filter((meme) =>
+            likedMemeIds.includes(meme.id)
+          );
+          const newSavedMemes = newMemes.filter((meme) =>
+            savedMemeIds.includes(meme.id)
+          );
+          
+          cacheStore.updateMainPageCache(
+            nextPage,
+            {
+              memes: newMemes,
+              likedMemes: newLikedMemes,
+              savedMemes: newSavedMemes,
+            },
+            nextPage,
+            response.data.hasNextPage === true
+          );
         } else {
           set((state) => {
             state.hasMoreMemes = false;
@@ -413,6 +473,22 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
     searchMemesAndUsers: async (query: string) => {
       try {
+        // Check cache first
+        const cacheStore = useCacheStore.getState() as any;
+        const cachedData = cacheStore.getSearchCache(query);
+        
+        if (cachedData) {
+          console.log(`Loading search results for "${query}" from cache`);
+          set((state) => {
+            state.searchUsers = cachedData.searchUsers;
+            state.searchMemes = cachedData.searchMemes;
+            state.searchQuery = query;
+            state.isLoading = false;
+            state.error = null;
+          });
+          return;
+        }
+
         set((state) => {
           state.isLoading = true;
           state.error = null;
@@ -429,6 +505,13 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           searchResult.memes?.map((apiMeme: ApiMeme) =>
             mapApiMemeToMeme(apiMeme, false)
           ) || [];
+
+        // Cache the search results
+        (cacheStore as any).setSearchCache(query, {
+          searchMemes: memes,
+          searchUsers: searchResult.users || [],
+          query,
+        });
 
         set((state) => {
           state.searchUsers = searchResult.users || [];
@@ -449,6 +532,27 @@ const useRawMemeContentStore = create<MemeContentStore>()(
       limit: number = 15
     ) => {
       try {
+        // Check cache first for page 1
+        if (page === 1) {
+          const cacheStore = useCacheStore.getState() as any;
+          const cachedData = cacheStore.getExplorePageCache();
+          
+          if (cachedData) {
+            console.log("Loading explore page data from cache");
+            set((state) => {
+              state.searchMemes = cachedData.searchMemes;
+              state.likedMemes = cachedData.likedMemes;
+              state.savedMemes = cachedData.savedMemes;
+              state.currentPage = cachedData.currentPage;
+              state.hasMoreMemes = cachedData.hasMoreMemes;
+              state.isLoading = false;
+              state.error = null;
+              state.userDataLoaded = true;
+            });
+            return;
+          }
+        }
+
         set((state) => {
           if (page === 1) {
             state.isLoading = true;
@@ -506,6 +610,23 @@ const useRawMemeContentStore = create<MemeContentStore>()(
               state.searchMemes = memes;
               state.likedMemes = likedMemes;
               state.savedMemes = savedMemes;
+              
+              // Cache the data for page 1
+              const cacheStore = useCacheStore.getState() as any;
+              cacheStore.setExplorePageCache({
+                searchMemes: memes,
+                likedMemes,
+                savedMemes,
+                currentPage: page,
+                hasMoreMemes: response.data.hasNextPage === true,
+                allPages: {
+                  1: {
+                    searchMemes: memes,
+                    likedMemes,
+                    savedMemes,
+                  }
+                }
+              });
             } else {
               state.searchMemes = [...state.searchMemes, ...memes];
 
@@ -534,6 +655,23 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
             if (page === 1) {
               state.searchMemes = memes;
+              
+              // Cache the data for page 1
+              const cacheStore = useCacheStore.getState() as any;
+              cacheStore.setExplorePageCache({
+                searchMemes: memes,
+                likedMemes: [],
+                savedMemes: [],
+                currentPage: page,
+                hasMoreMemes: memes.length >= limit,
+                allPages: {
+                  1: {
+                    searchMemes: memes,
+                    likedMemes: [],
+                    savedMemes: [],
+                  }
+                }
+              });
             } else {
               state.searchMemes = [...state.searchMemes, ...memes];
             }
@@ -638,6 +776,26 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             state.hasMoreMemes = response.data.hasNextPage === true;
             state.isLoadingMore = false;
           });
+
+          // Update cache with the new page data
+          const cacheStore = useCacheStore.getState() as any;
+          const newLikedMemes = newMemes.filter((meme) =>
+            likedMemeIds.includes(meme.id)
+          );
+          const newSavedMemes = newMemes.filter((meme) =>
+            savedMemeIds.includes(meme.id)
+          );
+          
+          cacheStore.updateExplorePageCache(
+            nextPage,
+            {
+              searchMemes: newMemes,
+              likedMemes: newLikedMemes,
+              savedMemes: newSavedMemes,
+            },
+            nextPage,
+            response.data.hasNextPage === true
+          );
         } else {
           set((state) => {
             state.hasMoreMemes = false;
@@ -859,9 +1017,11 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
         const memes = response.data.memes.map((item: any) => {
           if (item.meme) {
+            // Handle MemeDto format: { meme: Meme, liked: boolean, saved: boolean }
             return mapApiMemeToMeme(item.meme, false, item.liked, item.saved);
           } else {
-            return mapApiMemeToMeme(item, false);
+            // Handle direct Meme format, but still check for liked/saved properties
+            return mapApiMemeToMeme(item, false, item.liked || false, item.saved || false);
           }
         });
 
@@ -996,6 +1156,8 @@ const useRawMemeContentStore = create<MemeContentStore>()(
                 liked: newLikeState,
               };
             }
+
+
           });
 
           return;
@@ -1069,7 +1231,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
             const updateMemeInArray = (memes: Meme[]): Meme[] =>
               memes.map((m: Meme) =>
-                m.id === id ? { ...m, saveCount: newSaveCount } : m
+                m.id === id ? { ...m, saveCount: newSaveCount, saved: newSaveState } : m
               );
 
             state.memes = updateMemeInArray(state.memes);
@@ -1078,55 +1240,7 @@ const useRawMemeContentStore = create<MemeContentStore>()(
             state.savedMemes = updateMemeInArray(state.savedMemes);
             state.searchMemes = updateMemeInArray(state.searchMemes);
 
-            const user = getCurrentAuthUser();
-            if (user && user.username) {
-              const username = user.username;
-              if (state.profileTabsCache[username]) {
-                try {
-                  Object.keys(state.profileTabsCache[username]).forEach(
-                    (tabType) => {
-                      if (state.profileTabsCache[username][tabType]?.memes) {
-                        const memesCopy = JSON.parse(
-                          JSON.stringify(
-                            state.profileTabsCache[username][tabType].memes
-                          )
-                        );
 
-                        const updatedMemes = memesCopy.map(
-                          (m: { id: string }) =>
-                            m.id === id
-                              ? {
-                                  ...m,
-                                  saveCount: newSaveCount,
-                                  saved: newSaveState,
-                                }
-                              : m
-                        );
-
-                        state.profileTabsCache[username][tabType].memes =
-                          updatedMemes;
-                      }
-                    }
-                  );
-
-                  if (
-                    !newSaveState &&
-                    state.profileTabsCache[username]["SAVE"]
-                  ) {
-                    const memesCopy = JSON.parse(
-                      JSON.stringify(
-                        state.profileTabsCache[username]["SAVE"].memes
-                      )
-                    );
-
-                    state.profileTabsCache[username]["SAVE"].memes =
-                      memesCopy.filter((m: { id: string }) => m.id !== id);
-                  }
-                } catch (err) {
-                  console.error("Error updating profile cache:", err);
-                }
-              }
-            }
 
             if (state.selectedMeme && state.selectedMeme.id === id) {
               state.selectedMeme = {
@@ -1243,6 +1357,8 @@ const useRawMemeContentStore = create<MemeContentStore>()(
 
           state.isLoading = false;
         });
+
+
 
         // Update upload count in user store if the deleted meme belongs to the current user
         if (memeToDelete) {
@@ -1380,6 +1496,17 @@ const useRawMemeContentStore = create<MemeContentStore>()(
           };
         }
       });
+
+      // Update profile cache
+      const cacheStore = useCacheStore.getState() as any;
+      const currentUser = getCurrentAuthUser();
+      if (currentUser?.username) {
+        const updates: Partial<Meme> = {};
+        if (stats.likes !== undefined) updates.likeCount = stats.likes;
+        if (stats.saves !== undefined) updates.saveCount = stats.saves;
+        
+        cacheStore.updateProfileMemeInCache(currentUser.username, memeId, updates);
+      }
     },
 
     updateCommentInStore: (comment: Comment) => {
@@ -1530,19 +1657,23 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         }
       });
     },
-    clearProfileTabCache: (userId: string, tabType?: string) => {
+
+    addNewMemeToProfile: (meme: Meme, tabType: string = "UPLOAD") => {
+      // Add to local state
       set((state) => {
-        if (state.profileTabsCache[userId]) {
-          if (tabType) {
-            if (state.profileTabsCache[userId][tabType]) {
-              delete state.profileTabsCache[userId][tabType];
-            }
-          } else {
-            delete state.profileTabsCache[userId];
-          }
+        if (tabType === "UPLOAD") {
+          state.memeList.unshift(meme);
+        } else if (tabType === "LIKE") {
+          state.likedMemes.unshift(meme);
+        } else if (tabType === "SAVE") {
+          state.savedMemes.unshift(meme);
         }
       });
+
+
     },
+
+
 
     resetUserData: () => {
       set((state) => {
@@ -1551,14 +1682,12 @@ const useRawMemeContentStore = create<MemeContentStore>()(
         state.savedMemes = [];
         state.userDataLoaded = false;
 
-        const user = getCurrentAuthUser();
-        if (user && user.username) {
-          const username = user.username;
-          if (state.profileTabsCache[username]) {
-            delete state.profileTabsCache[username];
-          }
-        }
+
       });
+      
+      // Clear all cache when user data is reset
+      const cacheStore = useCacheStore.getState() as any;
+      cacheStore.clearAllCache();
     },
   }))
 );
