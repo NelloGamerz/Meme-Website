@@ -17,11 +17,13 @@ import {
   type MemeCategory,
 } from "../components/UploadPage/CategorySelector";
 import { useUserStore } from "../store/useUserStore";
+import { useCacheStore, type CacheStore } from "../store/useCacheStore";
 import api from "../hooks/api";
 import type { AxiosProgressEvent } from "axios";
 import toast from "react-hot-toast";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
+import type { Meme } from "../types/mems";
 
 type MediaType = "image" | "video" | "gif" | null;
 
@@ -446,7 +448,7 @@ export const UploadMemePage: React.FC = () => {
           tags: tagStrings,
         };
 
-        await api.post("/upload/meme", memeUploadData, {
+        const uploadResponse = await api.post("/upload/meme", memeUploadData, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -459,6 +461,19 @@ export const UploadMemePage: React.FC = () => {
             }
           },
         });
+
+        // Update caches with the newly uploaded meme if the response contains meme data
+        if (uploadResponse.data && uploadResponse.data.meme) {
+          const newMeme: Meme = uploadResponse.data.meme;          
+          // Update cache stores
+          const cacheStore = useCacheStore.getState() as CacheStore;
+          
+          // Add to main page cache if valid
+          cacheStore.addMemeToMainPageCache(newMeme);
+          
+          // Add to explore page cache if valid
+          cacheStore.addMemeToExplorePageCache(newMeme);
+        }
 
         setTimeout(() => {
           toast.success("Meme uploaded successfully!");

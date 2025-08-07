@@ -376,51 +376,62 @@ public class memeService {
 
         userModel user = optionalUser.get();
         String userId = user.getUserId();
-
         String redisKey = "explore_seen:" + userId;
 
         if (page == 0) {
             redisService.deleteKey(redisKey);
         }
 
-        Set<String> seenIds = new HashSet<>(redisService.getList(redisKey, String.class));
+        List<String> seenList = Optional.ofNullable(redisService.getList(redisKey, String.class))
+                .orElse(Collections.emptyList());
+        Set<String> seenIds = new HashSet<>(seenList);
 
-        List<Meme> trendingMemes = trendingCacheService.getTrendingMemes();
+        List<Meme> trendingMemes = Optional.ofNullable(trendingCacheService.getTrendingMemes())
+                .orElse(Collections.emptyList());
 
-        Map<String, Integer> tagScores = user.getTagInteractions();
+        Map<String, Integer> tagScores = Optional.ofNullable(user.getTagInteractions())
+                .orElse(Collections.emptyMap());
+
         List<Meme> interestMemes = new ArrayList<>();
-        if (tagScores != null && !tagScores.isEmpty()) {
+        if (!tagScores.isEmpty()) {
             List<String> topTags = tagScores.entrySet().stream()
                     .sorted((a, b) -> b.getValue() - a.getValue())
                     .limit(5)
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toList());
 
-            interestMemes = memeRepository.findByTagsIn(topTags);
+            interestMemes = Optional.ofNullable(memeRepository.findByTagsIn(topTags))
+                    .orElse(Collections.emptyList());
         }
 
-        List<String> followingIds = followersRepository.findFollowingIdsByFollowerId(userId);
+        List<String> followingIds = Optional.ofNullable(
+                followersRepository.findFollowingIdsByFollowerId(userId))
+                .orElse(Collections.emptyList());
+
         List<Meme> followingMemes = followingIds.isEmpty()
-                ? new ArrayList<>()
-                : memeRepository.findByUploaderIn(followingIds);
+                ? Collections.emptyList()
+                : Optional.ofNullable(memeRepository.findByUploaderIn(followingIds))
+                        .orElse(Collections.emptyList());
 
         Set<String> added = new HashSet<>();
         List<Meme> candidates = new ArrayList<>();
 
         Stream.of(interestMemes, followingMemes)
                 .flatMap(Collection::stream)
-                .filter(meme -> !seenIds.contains(meme.getId()) && added.add(meme.getId()))
+                .filter(meme -> meme != null && !seenIds.contains(meme.getId()) && added.add(meme.getId()))
                 .forEach(candidates::add);
 
         Stream.of(trendingMemes)
                 .flatMap(Collection::stream)
-                .filter(meme -> added.add(meme.getId()))
+                .filter(meme -> meme != null && added.add(meme.getId()))
                 .forEach(candidates::add);
 
         if (candidates.size() < limit) {
-            List<Meme> global = memeRepository.findGlobalMemes();
+            List<Meme> global = Optional.ofNullable(memeRepository.findGlobalMemes())
+                    .orElse(Collections.emptyList());
+
             for (Meme meme : global) {
-                if (!added.contains(meme.getId()) && !seenIds.contains(meme.getId())) {
+                if (meme != null && !added.contains(meme.getId()) && !seenIds.contains(meme.getId())) {
                     candidates.add(meme);
                     added.add(meme.getId());
                 }
@@ -430,24 +441,29 @@ public class memeService {
         }
 
         LocalDateTime recentThreshold = LocalDateTime.now().minusMinutes(30);
+
         Set<String> trendingIds = trendingMemes.stream()
+                .filter(Objects::nonNull)
                 .map(Meme::getId)
                 .collect(Collectors.toSet());
 
         Set<String> interestIds = interestMemes.stream()
+                .filter(Objects::nonNull)
                 .map(Meme::getId)
                 .collect(Collectors.toSet());
 
         Set<String> followingIdsSet = new HashSet<>(followingIds);
 
         List<Pair<Meme, Integer>> scored = candidates.stream()
+                .filter(Objects::nonNull)
                 .map(meme -> {
                     int score = 0;
 
-                    if (tagScores != null) {
-                        for (String tag : meme.getTags()) {
-                            score += tagScores.getOrDefault(tag, 0);
-                        }
+                    List<String> tags = Optional.ofNullable(meme.getTags())
+                            .orElse(Collections.emptyList());
+
+                    for (String tag : tags) {
+                        score += tagScores.getOrDefault(tag, 0);
                     }
 
                     if (interestIds.contains(meme.getId()))
@@ -457,9 +473,11 @@ public class memeService {
                     if (trendingIds.contains(meme.getId()))
                         score += 5;
 
-                    LocalDateTime created = meme.getMemeCreated().toInstant()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDateTime();
+                    LocalDateTime created = Optional.ofNullable(meme.getMemeCreated())
+                            .map(Date::toInstant)
+                            .map(instant -> instant.atZone(ZoneId.systemDefault()).toLocalDateTime())
+                            .orElse(LocalDateTime.MIN);
+
                     if (created.isAfter(recentThreshold))
                         score += 3;
 
@@ -471,6 +489,7 @@ public class memeService {
         int start = page * limit;
         int end = Math.min(start + limit, scored.size());
         boolean hasNext = end < scored.size();
+
         if (start >= scored.size()) {
             return new MemeFeedResponse(Collections.emptyList(), false);
         }
@@ -482,6 +501,7 @@ public class memeService {
         List<String> newSeen = pageMemes.stream()
                 .map(Meme::getId)
                 .collect(Collectors.toList());
+
         seenIds.addAll(newSeen);
         redisService.set(redisKey, new ArrayList<>(seenIds), 1, TimeUnit.MINUTES);
 
@@ -492,9 +512,11 @@ public class memeService {
 
         Map<String, Set<ActionType>> interactionMap = new HashMap<>();
         for (MemeInteractionDBO interaction : interactionsSlice) {
-            interactionMap
-                    .computeIfAbsent(interaction.getMemeId(), k -> new HashSet<>())
-                    .add(interaction.getType());
+            if (interaction != null && interaction.getMemeId() != null && interaction.getType() != null) {
+                interactionMap
+                        .computeIfAbsent(interaction.getMemeId(), k -> new HashSet<>())
+                        .add(interaction.getType());
+            }
         }
 
         List<MemeDto> memeDtos = pageMemes.stream()

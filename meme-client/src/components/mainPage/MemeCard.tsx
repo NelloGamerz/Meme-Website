@@ -115,11 +115,13 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   useEffect(() => {
     if (meme && meme.id) {
-      const storeIsLiked = likedMemes.some((m) => m.id === meme.id);
-      const storeIsSaved = savedMemes.some((m) => m.id === meme.id);
+      // Use the meme's actual liked/saved state from API response
+      // Fall back to store state only if meme properties are undefined
+      const actualIsLiked = meme.liked !== undefined ? meme.liked : likedMemes.some((m) => m.id === meme.id);
+      const actualIsSaved = meme.saved !== undefined ? meme.saved : savedMemes.some((m) => m.id === meme.id);
 
-      setLocalIsLiked(storeIsLiked);
-      setLocalIsSaved(storeIsSaved);
+      setLocalIsLiked(actualIsLiked);
+      setLocalIsSaved(actualIsSaved);
     }
   }, [meme, likedMemes, savedMemes]);
 
@@ -152,8 +154,9 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   const memeUrl = meme.url || meme.mediaUrl || "";
   const sanitizeUrl = DOMPurify.sanitize(memeUrl ? encodeURI(memeUrl) : "");
-  const isLiked = likedMemes.some((m) => m.id === meme.id) || localIsLiked;
-  const isSaved = savedMemes.some((m) => m.id === meme.id) || localIsSaved;
+  // Prioritize meme's actual liked/saved state from API response, then local state, then store state
+  const isLiked = meme.liked !== undefined ? meme.liked : (localIsLiked || likedMemes.some((m) => m.id === meme.id));
+  const isSaved = meme.saved !== undefined ? meme.saved : (localIsSaved || savedMemes.some((m) => m.id === meme.id));
   const pathSegments = location.pathname.split("/");
   const isProfilePage = pathSegments[1] === "profile";
   const profileUserId = pathSegments[2];
@@ -180,8 +183,8 @@ export const MemeCard: React.FC<MemeCardProps> = ({
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await toggleSave(meme.id, user.username ?? "");
     setLocalIsSaved(!isSaved);
+    await toggleSave(meme.id, user.username ?? "");
     if (wsStore.isConnected) {
       wsStore.sendMessage({
         type: "SAVE",

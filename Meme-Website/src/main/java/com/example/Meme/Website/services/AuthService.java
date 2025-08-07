@@ -68,11 +68,12 @@ public class AuthService {
     @Value("${frontend.url}")
     private String frontendUrl;
 
+
     @Transactional
     public ResponseEntity<RegisterResponse> registerUser(userModel user) {
         try {
-            String rawUsername = user.getUsername() != null ? user.getUsername().trim() : "";
-            String rawEmail = user.getEmail() != null ? user.getEmail().trim() : "";
+            String rawUsername = sanitize(user.getUsername());
+            String rawEmail = sanitize(user.getEmail());
 
             log.info("Attempting to register user with username: '{}'", rawUsername);
 
@@ -82,21 +83,11 @@ public class AuthService {
                         .body(new RegisterResponse("Username, Email, and Password must not be empty", null, null));
             }
 
-            boolean usernameExists = userRepository.existsByUsername(rawUsername);
-            boolean emailExists = userRepository.existsByEmail(rawEmail);
-
-            if (usernameExists || emailExists) {
-                String errorMessage;
-                if (usernameExists && emailExists)
-                    errorMessage = "Username and Email already exist";
-                else if (usernameExists)
-                    errorMessage = "Username already exists";
-                else
-                    errorMessage = "Email already exists";
-
-                log.warn("Registration failed for '{}': {}", rawUsername, errorMessage);
+            String validationError = validateUsernameEmail(rawUsername, rawEmail);
+            if (validationError != null) {
+                log.warn("Registration failed for '{}': {}", rawUsername, validationError);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new RegisterResponse(errorMessage, null, null));
+                        .body(new RegisterResponse(validationError, null, null));
             }
 
             user.setUsername(rawUsername);
@@ -106,34 +97,24 @@ public class AuthService {
             user.setUserCreated(now);
             user.setUserUpdated(now);
             user.setTagInteractions(new HashMap<>());
-
             user.setProfilePictureUrl("");
             user.setProfileBannerUrl("");
             user.setFollowersCount(0L);
             user.setFollowingCount(0L);
             user.setUploadCount(0L);
- 
+
             userModel savedUser = userRepository.save(user);
 
-            String userId = savedUser.getUserId();
-            userSettings userSettings = new userSettings(null, userId, "light", Instant.now());
-            userSettingsRepository.save(userSettings);
+            userSettings settings = new userSettings(null, savedUser.getUserId(), "light", Instant.now());
+            userSettingsRepository.save(settings);
 
-            long accessTokenExpiryMinutes = 1;
-            long refreshTokenExpiryMinutes = 60 * 24 * 7;
-
-            String accessToken = jwtservice.generateToken(savedUser.getUsername(), accessTokenExpiryMinutes,
-                    "accessToken");
-            String refreshToken = jwtservice.generateToken(savedUser.getUsername(), refreshTokenExpiryMinutes,
-                    "refreshToken");
-
-            redisService.setToken("refresh_token", savedUser.getUsername(), refreshToken,
-                    refreshTokenExpiryMinutes * 60);
+            Map<String, String> tokens = generateAndStoreTokens(savedUser.getUsername(), 1, 60 * 24 * 7);
 
             log.info("✅ User '{}' registered successfully", savedUser.getUsername());
 
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new RegisterResponse(savedUser.getUsername(), accessToken, refreshToken));
+                    .body(new RegisterResponse(savedUser.getUsername(), tokens.get("accessToken"),
+                            tokens.get("refreshToken")));
 
         } catch (Exception e) {
             log.error("❌ Registration error: {}", e.getMessage(), e);
@@ -161,16 +142,40 @@ public class AuthService {
         }
 
         final long accessTokenExpiryMin = 1;
-        final long refreshTokenExpiryMin = request.isRememberMe() ? 60 * 24 * 7 : 60 * 24; // 7 days vs 1 day
+        final long refreshTokenExpiryMin = request.isRememberMe() ? 60 * 24 * 7 : 60 * 24;
 
-        String accessToken = jwtservice.generateToken(username, accessTokenExpiryMin, "accessToken");
-        String refreshToken = jwtservice.generateToken(username, refreshTokenExpiryMin, "refreshToken");
-
-        redisService.setToken("refresh_token", username, refreshToken, refreshTokenExpiryMin * 60);
+        Map<String, String> tokens = generateAndStoreTokens(username, accessTokenExpiryMin, refreshTokenExpiryMin);
 
         log.info("✅ Authentication successful for username: '{}'", username);
 
-        return new AuthResponse(accessToken, refreshToken, user.getUsername(), user.getUserId());
+        return new AuthResponse(tokens.get("accessToken"), tokens.get("refreshToken"),
+                user.getUsername(), user.getUserId());
+    }
+
+    private String sanitize(String value) {
+        return value != null ? value.trim() : "";
+    }
+
+    private String validateUsernameEmail(String username, String email) {
+        boolean usernameExists = userRepository.existsByUsername(username);
+        boolean emailExists = userRepository.existsByEmail(email);
+
+        if (usernameExists && emailExists)
+            return "Username and Email already exist";
+        if (usernameExists)
+            return "Username already exists";
+        if (emailExists)
+            return "Email already exists";
+        return null;
+    }
+
+    private Map<String, String> generateAndStoreTokens(String username, long accessExpiryMin, long refreshExpiryMin) {
+        String accessToken = jwtservice.generateToken(username, accessExpiryMin, "accessToken");
+        String refreshToken = jwtservice.generateToken(username, refreshExpiryMin, "refreshToken");
+
+        redisService.setToken("refresh_token", username, refreshToken, refreshExpiryMin * 60);
+
+        return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
     }
 
     @Transactional
