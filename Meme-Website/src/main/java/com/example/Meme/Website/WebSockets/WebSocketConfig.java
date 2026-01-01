@@ -9,6 +9,8 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 import com.example.Meme.Website.config.RateLimitConfig;
+import com.example.Meme.Website.services.ChatMessageService;
+import com.example.Meme.Website.services.ChatRoomService;
 import com.example.Meme.Website.services.ProfileService;
 import com.example.Meme.Website.services.RateLimiterService;
 import com.example.Meme.Website.services.memeService;
@@ -32,6 +34,10 @@ public class WebSocketConfig implements WebSocketConfigurer{
     private RateLimiterService rateLimiterService;
     @Autowired
     private RateLimitConfig rateLimitConfig;
+    @Autowired
+    private ChatRoomService chatRoomService;
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     @Value("${frontend.websocket.url}")
     private String frontendUrl;
@@ -44,6 +50,6 @@ public class WebSocketConfig implements WebSocketConfigurer{
     }
 
     public WebSocketHandler webSocketHandler(){
-        return new CustomWebSocketHandler(memeService, profileService, webSocketSessionManager, rateLimiterService, rateLimitConfig);
+        return new CustomWebSocketHandler(memeService, profileService, webSocketSessionManager, rateLimiterService, rateLimitConfig, chatMessageService, chatRoomService);
     }
 }
