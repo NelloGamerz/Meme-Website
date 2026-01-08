@@ -70,7 +70,7 @@ export function CommentsSection({
         </div>
 
         <div
-          className="flex-1 overflow-y-auto mb-4 comments-scroll-container"
+          className="flex-1 overflow-y-auto mb-4 custom-scrollbar"
           style={{ maxHeight: "calc(100vh - 550px)" }}
         >
           {!isAuthenticated ? (
