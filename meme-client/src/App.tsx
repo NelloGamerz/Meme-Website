@@ -13,11 +13,15 @@ import { CreatePage } from './pages/CreatePage';
 import { UploadMemePage } from './pages/UploadMemePage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { MessagingPage } from './pages/MessagingPage';
 import { initializeTheme, getInMemoryTheme } from './store/useSettingsStore';
 import { WebSocketManager } from './components/websocket/WebSocketManager';
+// import { WebSocketEventHandler } from './components/websocket/WebSocketEventHandler';
+import { WebSocketChatManager } from './components/websocket/WebSocketChatManager';
 import { UserProfileInitializer } from './components/auth/UserProfileInitializer';
 import { ThemeProvider } from './context/ThemeProvider';
 import { ScrollToTop } from './utils/ScrollToTop';
+import './utils/websocketMessageLogger'; // Initialize global WebSocket logger
 import React from 'react';
 
 const ProfilePageWrapper = () => {
@@ -87,6 +91,8 @@ function App() {
   return (
     <ThemeProvider>
       <WebSocketManager />
+      <WebSocketChatManager />
+      {/* <WebSocketEventHandler /> */}
       <UserProfileInitializer />
       <ScrollToTop />
 
@@ -145,6 +151,14 @@ function App() {
           element={
             <ProtectedLayout>
               <SettingsPage />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedLayout>
+              <MessagingPage />
             </ProtectedLayout>
           }
         />

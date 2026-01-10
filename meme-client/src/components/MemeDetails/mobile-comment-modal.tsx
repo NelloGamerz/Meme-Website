@@ -62,7 +62,7 @@ export function MobileCommentModal({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 comments-scroll-container-mobile">
+        <div className="flex-1 overflow-y-auto p-6 custom--scrollbar">
           {!isAuthenticated ? (
             <div className="text-center py-12 bg-white/30 dark:bg-white/10 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700">
               <MessageCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
