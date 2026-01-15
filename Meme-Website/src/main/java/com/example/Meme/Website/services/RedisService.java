@@ -215,15 +215,14 @@ public class RedisService {
     }
 
     public Map<String, String> getAllHash(String key) {
-    Map<Object, Object> rawMap = redisTemplate.opsForHash().entries(key);
-    
-    return rawMap.entrySet()
-                 .stream()
-                 .collect(Collectors.toMap(
-                     e -> String.valueOf(e.getKey()),
-                     e -> String.valueOf(e.getValue())
-                 ));
-}
+        Map<Object, Object> rawMap = redisTemplate.opsForHash().entries(key);
 
+        return rawMap.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> String.valueOf(e.getKey()),
+                        e -> String.valueOf(e.getValue())));
+    }
 
 }
+

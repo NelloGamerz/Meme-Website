@@ -86,6 +86,31 @@ public class ProfileService {
     @Autowired
     private NotificationBatchBuffer notificationBatchBuffer;
 
+    // public String getUserIdByUsername(String username) {
+    // Optional<userModel> userOpt = userRepository.findByUsername(username);
+    // if (userOpt.isEmpty()) {
+    // return null; // Return null instead of throwing an error
+    // }
+
+    // return userOpt.get().getUserId();
+    // }
+
+    public Map<String, String> getUserDetailsByUsername(String username) {
+        Optional<userModel> userOpt = userRepository.findByUsername(username);
+
+        if (userOpt.isEmpty()) {
+            return null; // You could also return an empty map if preferred
+        }
+
+        userModel user = userOpt.get();
+        Map<String, String> userDetails = new HashMap<>();
+        userDetails.put("userId", user.getUserId());
+        userDetails.put("username", user.getUsername());
+        userDetails.put("profilePictureUrl", user.getProfilePictureUrl());
+
+        return userDetails;
+    }
+
     @Transactional
     public void updateProfilePictureInFollowersAndFollowing(String userId, String newProfilePictureUrl) {
         Query followersQuery = new Query(Criteria.where("Followers.userId").is(userId));
