@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect, useState } from "react";
-import { Edit2, UserPlus, UserCheck, Settings} from "lucide-react";
+import { Edit2, UserPlus, UserCheck, Settings, MessageCircle} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "../../store/useUserStore";
 import toast from "react-hot-toast";
@@ -9,12 +9,14 @@ interface ProfileHeaderProps {
   onEditProfile: () => void;
   onOpenFollowers: () => void;
   onOpenFollowing: () => void;
+  onMessage?: () => void;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onEditProfile,
   onOpenFollowers,
   onOpenFollowing,
+  onMessage,
 }) => {
   const navigate = useNavigate();
   const { username } = useParams<{ username: string }>();
@@ -237,39 +239,50 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 </button>
               </>
             ) : (
-              <button
-                onClick={onFollow}
-                disabled={followersLoading}
-                className={`${
-                  isFollowingViewedUser || followed || isUserFollowing()
-                    ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-                    : "bg-white hover:bg-white text-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-800 dark:text-gray-200"
-                } py-2 px-4 rounded-full flex items-center justify-center space-x-2 transition-colors shadow-sm border border-gray-200 dark:border-gray-700 ${
-                  followersLoading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-                data-testid="follow-button"
-                data-following={isFollowingViewedUser || followed || isUserFollowing() ? "true" : "false"}
-                data-followback={followback || isViewedProfileFollowingUser() ? "true" : "false"}
-              >
-                {followersLoading ? (
-                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                ) : isFollowingViewedUser || followed || isUserFollowing() ? (
-                  <>
-                    <UserCheck className="w-5 h-5" />
-                    <span>Following</span>
-                  </>
-                ) : followback || isViewedProfileFollowingUser() ? (
-                  <>
-                    <UserPlus className="w-5 h-5" />
-                    <span>Follow Back</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-5 h-5" />
-                    <span>Follow</span>
-                  </>
+              <div className="flex space-x-2">
+                {onMessage && (
+                  <button
+                    onClick={onMessage}
+                    className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full flex items-center space-x-2 transition-colors shadow-sm"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="hidden sm:inline">Message</span>
+                  </button>
                 )}
-              </button>
+                <button
+                  onClick={onFollow}
+                  disabled={followersLoading}
+                  className={`${
+                    isFollowingViewedUser || followed || isUserFollowing()
+                      ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                      : "bg-white hover:bg-white text-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-800 dark:text-gray-200"
+                  } py-2 px-4 rounded-full flex items-center justify-center space-x-2 transition-colors shadow-sm border border-gray-200 dark:border-gray-700 ${
+                    followersLoading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
+                  data-testid="follow-button"
+                  data-following={isFollowingViewedUser || followed || isUserFollowing() ? "true" : "false"}
+                  data-followback={followback || isViewedProfileFollowingUser() ? "true" : "false"}
+                >
+                  {followersLoading ? (
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  ) : isFollowingViewedUser || followed || isUserFollowing() ? (
+                    <>
+                      <UserCheck className="w-5 h-5" />
+                      <span>Following</span>
+                    </>
+                  ) : followback || isViewedProfileFollowingUser() ? (
+                    <>
+                      <UserPlus className="w-5 h-5" />
+                      <span>Follow Back</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-5 h-5" />
+                      <span>Follow</span>
+                    </>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>
