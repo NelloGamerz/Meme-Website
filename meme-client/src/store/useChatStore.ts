@@ -5,9 +5,7 @@ import { getChatMessagesFromCache, saveChatMessagesToCache } from "../utils/inde
 import type {
   ChatRoom,
   Message,
-  ConversationParticipant,
   ApiChatRoom,
-  ApiMessage,
 } from "../types/mems";
 
 interface ChatState {
@@ -379,36 +377,36 @@ const useChatStoreBase = create<ChatStore>((set, get) => ({
         .substring(2, 9)}`;
 
       // Create a local message object for optimistic UI update
-      const currentUser = getCurrentUser();
-      let profilePicture = "";
-      try {
-        const authStateStr = localStorage.getItem("auth");
-        if (authStateStr) {
-          const authState = JSON.parse(authStateStr);
-          profilePicture = authState.user?.profilePicture || "";
-        }
-      } catch (e) {
-        console.warn("Failed to get profile picture from localStorage", e);
-      }
+      // const currentUser = getCurrentUser();
+      // let profilePicture = "";
+      // try {
+      //   const authStateStr = localStorage.getItem("auth");
+      //   if (authStateStr) {
+      //     const authState = JSON.parse(authStateStr);
+      //     profilePicture = authState.user?.profilePicture || "";
+      //   }
+      // } catch (e) {
+      //   console.warn("Failed to get profile picture from localStorage", e);
+      // }
 
       // Create the local message object
-      const localMessage: Message = {
-        id: tempMessageId,
-        chatRoomId,
-        message: message.trim(),
-        messageType,
-        mediaUrl,
-        replyToMessageId,
-        senderId: currentUser || "",
-        senderUsername: currentUser || "",
-        senderProfilePicture: profilePicture,
-        timestamp: new Date(),
-        read: false,
-        edited: false,
-        deleted: false,
-        isOwn: true,
-        isServerConfirmed: false, // Mark as not confirmed by server yet
-      };
+      // const localMessage: Message = {
+      //   id: tempMessageId,
+      //   chatRoomId,
+      //   message: message.trim(),
+      //   messageType,
+      //   mediaUrl,
+      //   replyToMessageId,
+      //   senderId: currentUser || "",
+      //   senderUsername: currentUser || "",
+      //   senderProfilePicture: profilePicture,
+      //   timestamp: new Date(),
+      //   read: false,
+      //   edited: false,
+      //   deleted: false,
+      //   isOwn: true,
+      //   isServerConfirmed: false, // Mark as not confirmed by server yet
+      // };
 
       // Add the message to the local state for immediate feedback (sender's UI)
       // get().addMessage(localMessage);

@@ -160,7 +160,7 @@ class IndexedDBCache {
     await this.init();
 
     if (this.db) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         try {
           const tx1 = this.db!.transaction([this.settingsStore], 'readwrite');
           tx1.objectStore(this.settingsStore).clear();
