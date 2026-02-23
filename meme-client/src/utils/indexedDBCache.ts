@@ -1,13 +1,25 @@
+import type { Message } from "../types/mems";
+
 interface SettingsData {
   theme: string;
   lastUpdated: number;
   syncedWithServer: boolean;
 }
 
+interface ChatMessagesRow {
+  key: string;
+  chatRoomId: string;
+  page: number;
+  size: number;
+  messages: Message[];
+  lastUpdated: number;
+}
+
 class IndexedDBCache {
   private dbName = 'MemeAppDB';
-  private dbVersion = 1;
-  private storeName = 'settings';
+  private dbVersion = 2; // upgraded to add 'chatMessages' store
+  private settingsStore = 'settings';
+  private chatStore = 'chatMessages';
   private db: IDBDatabase | null = null;
   private isInitialized = false;
 
@@ -37,9 +49,17 @@ class IndexedDBCache {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
+        // settings store
+        if (!db.objectStoreNames.contains(this.settingsStore)) {
+          const store = db.createObjectStore(this.settingsStore, { keyPath: 'key' });
           store.createIndex('lastUpdated', 'lastUpdated', { unique: false });
+        }
+        // chatMessages store
+        if (!db.objectStoreNames.contains(this.chatStore)) {
+          const store = db.createObjectStore(this.chatStore, { keyPath: 'key' });
+          store.createIndex('chatRoomId', 'chatRoomId', { unique: false });
+          store.createIndex('lastUpdated', 'lastUpdated', { unique: false });
+          store.createIndex('page', 'page', { unique: false });
         }
       };
     });
@@ -57,8 +77,8 @@ class IndexedDBCache {
 
     if (this.db) {
       return new Promise((resolve, reject) => {
-        const transaction = this.db!.transaction([this.storeName], 'readwrite');
-        const store = transaction.objectStore(this.storeName);
+        const transaction = this.db!.transaction([this.settingsStore], 'readwrite');
+        const store = transaction.objectStore(this.settingsStore);
         const request = store.put(settingsData);
 
         request.onsuccess = () => resolve();
@@ -77,8 +97,8 @@ class IndexedDBCache {
 
     if (this.db) {
       return new Promise((resolve, reject) => {
-        const transaction = this.db!.transaction([this.storeName], 'readonly');
-        const store = transaction.objectStore(this.storeName);
+        const transaction = this.db!.transaction([this.settingsStore], 'readonly');
+        const store = transaction.objectStore(this.settingsStore);
         const request = store.get('theme');
 
         request.onsuccess = () => {
@@ -121,8 +141,8 @@ class IndexedDBCache {
 
     if (this.db) {
       return new Promise((resolve, reject) => {
-        const transaction = this.db!.transaction([this.storeName], 'readwrite');
-        const store = transaction.objectStore(this.storeName);
+        const transaction = this.db!.transaction([this.settingsStore], 'readwrite');
+        const store = transaction.objectStore(this.settingsStore);
         const request = store.delete('theme');
 
         request.onsuccess = () => resolve();
@@ -141,17 +161,15 @@ class IndexedDBCache {
 
     if (this.db) {
       return new Promise((resolve, reject) => {
-        const transaction = this.db!.transaction([this.storeName], 'readwrite');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.clear();
-
-        request.onsuccess = () => {
-          resolve();
-        };
-        request.onerror = () => {
-          console.error('Failed to clear all data from IndexedDB:', request.error);
-          reject(new Error('Failed to clear all data from IndexedDB'));
-        };
+        try {
+          const tx1 = this.db!.transaction([this.settingsStore], 'readwrite');
+          tx1.objectStore(this.settingsStore).clear();
+        } catch {}
+        try {
+          const tx2 = this.db!.transaction([this.chatStore], 'readwrite');
+          tx2.objectStore(this.chatStore).clear();
+        } catch {}
+        resolve();
       });
     } else {
       throw new Error('IndexedDB not available');
@@ -210,30 +228,95 @@ class IndexedDBCache {
       storageUsed
     };
   }
+
+  // ----- Chat Messages Cache (merged) -----
+  private buildChatKey(chatRoomId: string, page: number, size: number) {
+    return `chat:${chatRoomId}:page:${page}:size:${size}`;
+  }
+
+  async getChatMessages(chatRoomId: string, page: number, size: number): Promise<Message[] | null> {
+    await this.init().catch(() => {});
+    if (!this.db) return null;
+    return new Promise<Message[] | null>((resolve) => {
+      try {
+        const tx = this.db!.transaction([this.chatStore], 'readonly');
+        const store = tx.objectStore(this.chatStore);
+        const req = store.get(this.buildChatKey(chatRoomId, page, size));
+        req.onsuccess = () => resolve(req.result?.messages ?? null);
+        req.onerror = () => resolve(null);
+      } catch {
+        resolve(null);
+      }
+    });
+  }
+
+  async saveChatMessages(chatRoomId: string, page: number, size: number, messages: Message[]): Promise<void> {
+    await this.init().catch(() => {});
+    if (!this.db) return;
+    const row: ChatMessagesRow = {
+      key: this.buildChatKey(chatRoomId, page, size),
+      chatRoomId, page, size, messages,
+      lastUpdated: Date.now(),
+    };
+    await new Promise<void>((resolve) => {
+      try {
+        const tx = this.db!.transaction([this.chatStore], 'readwrite');
+        const store = tx.objectStore(this.chatStore);
+        const req = store.put(row);
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+      } catch {
+        resolve();
+      }
+    });
+  }
+
+  async clearChatMessagesForRoom(chatRoomId: string): Promise<void> {
+    await this.init().catch(() => {});
+    if (!this.db) return;
+    await new Promise<void>((resolve) => {
+      try {
+        const tx = this.db!.transaction([this.chatStore], 'readwrite');
+        const store = tx.objectStore(this.chatStore);
+        const index = store.index('chatRoomId');
+        const cursorReq = index.openCursor(IDBKeyRange.only(chatRoomId));
+        cursorReq.onsuccess = () => {
+          const cursor = cursorReq.result as IDBCursorWithValue | null;
+          if (cursor) { cursor.delete(); cursor.continue(); } else { resolve(); }
+        };
+        cursorReq.onerror = () => resolve();
+      } catch {
+        resolve();
+      }
+    });
+  }
 }
 
 export const indexedDBCache = new IndexedDBCache();
 
+// Theme helpers
 export const saveThemeToIndexedDB = (theme: string, synced: boolean = false) => 
   indexedDBCache.saveThemeSettings(theme, synced);
-
 export const getThemeFromIndexedDB = () => 
   indexedDBCache.getThemeSettings();
-
 export const markThemeAsSynced = () => 
   indexedDBCache.markThemeAsSynced();
-
 export const needsThemeSync = () => 
   indexedDBCache.needsServerSync();
-
 export const clearThemeFromIndexedDB = () => 
   indexedDBCache.clearThemeSettings();
 
+// Chat messages helpers (merged)
+export const getChatMessagesFromCache = (chatRoomId: string, page: number, size: number) =>
+  indexedDBCache.getChatMessages(chatRoomId, page, size);
+export const saveChatMessagesToCache = (chatRoomId: string, page: number, size: number, messages: Message[]) =>
+  indexedDBCache.saveChatMessages(chatRoomId, page, size, messages);
+export const clearChatMessagesCacheForRoom = (chatRoomId: string) =>
+  indexedDBCache.clearChatMessagesForRoom(chatRoomId);
+
 export const clearAllIndexedDBData = () => 
   indexedDBCache.clearAllData();
-
 export const deleteIndexedDBDatabase = () => 
   indexedDBCache.deleteDatabase();
-
 export const getIndexedDBStats = () => 
   indexedDBCache.getStats();

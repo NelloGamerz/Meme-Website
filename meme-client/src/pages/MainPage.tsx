@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Bell, RefreshCw, WifiOff } from "lucide-react";
 import { useMemeContentStore } from "../store/useMemeContentStore.ts";
 import { useUserStore } from "../store/useUserStore.ts";
+// import { useCacheStore } from "../store/useCacheStore.ts";
 import { MemeCard } from "../components/mainPage/MemeCard";
 import { SkeletonCard } from "../components/ui/SkeletonCard";
 import { TrueMasonryGrid } from "../components/mainPage/TrueMasonryGrid";
@@ -18,6 +19,7 @@ export const MainPage: React.FC = () => {
   const hasMoreMemes = useMemeContentStore.use.hasMoreMemes();
   const error = useMemeContentStore.use.error();
   const userName = useUserStore.use.userName();
+  // const clearMainPageCache = useCacheStore.use.clearMainPageCache();
 
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -79,6 +81,8 @@ export const MainPage: React.FC = () => {
 
     setIsRefreshing(true);
     try {
+      // clearMainPageCache();
+      
       await fetchMemes();
       setRetryCount(0);
 

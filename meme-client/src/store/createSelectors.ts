@@ -3,9 +3,7 @@ export function createSelectors<T extends object, A extends object = object>(
   store: UseBoundStore<StoreApi<T & A>>
 ) {
   type UseSelectors = {
-    [K in keyof T]: () => T[K];
-  } & {
-    [K in keyof A]: () => A[K];
+    [K in keyof (T & A)]: () => (T & A)[K];
   } & {
     state: <K extends Array<keyof (T & A)>>(...keys: K) => { [P in K[number]]: (T & A)[P] };
     actions: <K extends Array<keyof (T & A)>>(...keys: K) => { [P in K[number]]: (T & A)[P] };
@@ -59,5 +57,5 @@ export function createSelectors<T extends object, A extends object = object>(
       state: stateSelector,
       actions: actionsSelector,
     } as UseSelectors,
-  });
+  }) as UseBoundStore<StoreApi<T & A>> & { use: UseSelectors };
 }
