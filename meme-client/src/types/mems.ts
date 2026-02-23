@@ -140,3 +140,63 @@ export interface ApiSearchResult{
   memes: ApiMeme[] | null,
   users: UserApi[] | null,
 }
+
+export interface Message {
+  id: string;
+  chatRoomId: string;
+  message: string;
+  messageType: 'text' | 'image' | 'meme' | 'video' | 'audio' | 'file';
+  mediaUrl?: string;
+  replyToMessageId?: string;
+  senderId: string;
+  senderUsername: string;
+  senderProfilePicture: string;
+  timestamp: Date;
+  read: boolean;
+  edited?: boolean;
+  deleted?: boolean;
+  isOwn?: boolean; // For WebSocket messages to determine left/right positioning
+  isServerConfirmed?: boolean; // Flag to indicate if this message is confirmed by the server
+}
+
+export interface ChatRoom {
+  chatRoomId: string;
+  name: string;
+  profilePictureUrl: string;
+  lastMessage?: string;
+  unreadCount: number;
+  updatedAt: Date;
+}
+
+export interface ConversationParticipant {
+  username: string;
+  profilePictureUrl: string;
+  isOnline: boolean;
+  lastSeen?: Date;
+}
+
+export interface ApiMessage {
+  id: string;
+  chatRoomId: string;
+  message: string;
+  messageType: 'text' | 'image' | 'meme' | 'video' | 'audio' | 'file';
+  mediaUrl?: string;
+  replyToMessageId?: string;
+  senderId: string;
+  senderUsername: string;
+  senderProfilePicture: string;
+  timestamp: string;
+  read: boolean;
+  edited?: boolean;
+  deleted?: boolean;
+}
+
+export interface ApiChatRoom {
+  chatRoomId: string;
+  isGroup: boolean;
+  username: string;
+  profilePictureUrl: string;
+  lastMessage?: string;
+  lastUpdated: string;
+  unreadCount: number;
+}

@@ -198,3 +198,170 @@
 .hover-glow:hover {
   box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
 }
+
+/* Messaging Specific Animations */
+
+@keyframes messageSlideInLeft {
+  from {
+    transform: translateX(-30px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes messageSlideInRight {
+  from {
+    transform: translateX(30px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes messagePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes typingDots {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@keyframes inputFocus {
+  from {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  to {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+}
+
+@keyframes sendButtonPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes messageDelivered {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Animation Classes for Messaging */
+
+.animate-message-slide-in-left {
+  animation: messageSlideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-message-slide-in-right {
+  animation: messageSlideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-message-pop {
+  animation: messagePop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.animate-typing-dots {
+  animation: typingDots 1.4s infinite ease-in-out;
+}
+
+.animate-input-focus {
+  animation: inputFocus 0.3s ease-out forwards;
+}
+
+.animate-send-pulse {
+  animation: sendButtonPulse 0.6s ease-out;
+}
+
+.animate-message-delivered {
+  animation: messageDelivered 0.3s ease-out;
+}
+
+/* Custom Easing Functions */
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ease-bounce {
+  transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.ease-smooth {
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Stagger Animation Utilities */
+.stagger-animation {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.stagger-animation.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.stagger-delay-1 { transition-delay: 100ms; }
+.stagger-delay-2 { transition-delay: 200ms; }
+.stagger-delay-3 { transition-delay: 300ms; }
+.stagger-delay-4 { transition-delay: 400ms; }
+.stagger-delay-5 { transition-delay: 500ms; }
+
+/* Message Bubble Specific Animations */
+.message-bubble-enter {
+  transform: scale(0.8) translateY(10px);
+  opacity: 0;
+}
+
+.message-bubble-enter-active {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.message-bubble-hover {
+  transition: all 0.2s ease;
+}
+
+.message-bubble-hover:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}

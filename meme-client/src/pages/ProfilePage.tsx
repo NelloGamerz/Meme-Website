@@ -12,6 +12,7 @@ import { FollowingModal } from "../components/profile/FollowingModal"
 import { MemeCard } from "../components/mainPage/MemeCard"
 import { TrueMasonryGrid } from "../components/mainPage/TrueMasonryGrid"
 import { SkeletonCard } from "../components/ui/SkeletonCard"
+import useChatStore from "../store/useChatStore"
 
 
 type TabType = "uploaded" | "liked" | "saved"
@@ -31,6 +32,12 @@ export const ProfilePage: React.FC = () => {
   const updateUserProfile = useUserStore.use.updateUserProfile()
   const fetchFollowData = useUserStore.use.fetchFollowData()
   
+  // Chat store methods for messaging functionality
+  const findOrCreateDirectMessage = useChatStore((s) => s.findOrCreateDirectMessage)
+  const setActiveChatRoom = useChatStore((s) => s.setActiveChatRoom)
+  
+  // Note: Chat will be created when first message is sent
+  
   const loggedInUserProfilePictureUrl = useUserStore.use.loggedInUserProfilePictureUrl()
   const loggedInUserProfileBannerUrl = useUserStore.use.loggedInUserProfileBannerUrl()
   const loggedInUserName = useUserStore.use.loggedInUserName()
@@ -39,6 +46,7 @@ export const ProfilePage: React.FC = () => {
 
   const viewedUserProfile = useUserStore.use.viewedUserProfile()
   const viewedUserName = useUserStore.use.viewedUserName()
+  const viewedUserProfilePictureUrl = useUserStore.use.viewedUserProfilePictureUrl()
   const viewedUserFollowers = useUserStore.use.viewedUserFollowers()
   const viewedUserFollowing = useUserStore.use.viewedUserFollowing()
 
@@ -380,6 +388,50 @@ export const ProfilePage: React.FC = () => {
     setIsFollowersModalOpen(false)
     setIsFollowingModalOpen(false)
   }
+
+  const handleMessage = async () => {
+    if (!username || isOwnProfile) return
+    
+    // Check if user is authenticated
+    if (!loggedInUser?.username) {
+      toast.error('You need to be logged in to send messages')
+      navigate('/auth')
+      return
+    }
+    
+    try {
+      // Get the target user's profile picture URL
+      const targetProfilePicture = viewedUserProfilePictureUrl || ''
+      
+      // Find or create a direct message chat room with the target user
+      const chatRoomId = await findOrCreateDirectMessage(username, targetProfilePicture)
+      
+      // Set the chat room as active so it opens automatically
+      setActiveChatRoom(chatRoomId)
+      
+      // Navigate to the messages page
+      navigate('/messages')
+      
+      toast.success(`Opening chat with ${username}`)
+    } catch (error) {
+      console.error('Failed to initialize chat:', error)
+      // More specific error handling
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as any).response === "object" &&
+        (error as any).response !== null &&
+        "status" in (error as any).response &&
+        (error as any).response.status === 401
+      ) {
+        toast.error('You need to be logged in to send messages')
+        navigate('/auth')
+      } else {
+        toast.error('Failed to start chat. Please try again.')
+      }
+    }
+  }
   const renderSkeletonCards = () => {
     return Array.from({ length: 9 }, (_, index) => (
       <SkeletonCard key={`skeleton-${index}`} index={index} />
@@ -403,6 +455,7 @@ export const ProfilePage: React.FC = () => {
         onEditProfile={() => setIsEditProfileModalOpen(true)}
         onOpenFollowers={openFollowersModal}
         onOpenFollowing={openFollowingModal}
+        onMessage={!isOwnProfile ? handleMessage : undefined}
       />
 
       <ProfileTabs activeTab={activeTab} isOwnProfile={isOwnProfile} onTabChange={handleTabChange} />
@@ -502,3 +555,4 @@ export const ProfilePage: React.FC = () => {
 }
 
 export default ProfilePage
+

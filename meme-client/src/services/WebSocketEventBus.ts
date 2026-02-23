@@ -11,7 +11,7 @@ class WebSocketEventBus {
     
     const messageTypes: WebSocketMessageType[] = [
       'PING', 'PONG', 'FOLLOW', 'COMMENT', 'LIKE', 'SAVE', 
-      'NOTIFICATION', 'JOIN_POST', 'LEAVE_POST'
+      'NOTIFICATION', 'JOIN_POST', 'LEAVE_POST', 'CHAT'
     ];
     
     messageTypes.forEach(type => {
