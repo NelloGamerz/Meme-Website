@@ -1,7 +1,5 @@
 import type React from "react";
-import { 
-  Phone, 
-  Video, 
+import {  
   Info, 
   ArrowLeft
 } from "lucide-react";
@@ -16,7 +14,6 @@ interface ChatHeaderProps {
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   conversation,
-  currentUser,
   showBackButton = false,
   onBackClick
 }) => {

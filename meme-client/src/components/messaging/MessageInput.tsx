@@ -2,9 +2,8 @@ import type React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { 
   Smile, 
-  Image, 
   Send,
-  Paperclip
+
 } from "lucide-react";
 import EmojiPicker, { Theme, EmojiStyle, Categories } from "emoji-picker-react";
 

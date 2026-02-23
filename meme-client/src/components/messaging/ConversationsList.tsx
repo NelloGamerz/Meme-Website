@@ -3,8 +3,6 @@ import { useState } from "react";
 import { 
   MessageCircle, 
   Search, 
-  Plus,
-  MoreHorizontal,
   Users
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -21,7 +19,6 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   conversations,
   activeConversationId,
   isLoadingConversations,
-  currentUser,
   onConversationClick
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +43,7 @@ export const ConversationsList: React.FC<ConversationsListProps> = ({
   };
 
   const getOnlineStatus = (conv: any) => {
+    console.log(conv)
     // For ChatRoom objects, online status is not available in the current structure
     // This could be enhanced later by checking online users from chat store
     return false;

@@ -243,15 +243,12 @@ export const useWebSocketStore = create<WebSocketStore>(() => ({
   // Integrated handler initialization for chat functionality
   initializeChatHandlers: (options) => {
     const {
-      addMessage,
       updateMessage,
       setUserOnlineStatus,
-      setTypingStatus,
-      fetchRecentChatRooms,
     } = options;
 
     // Track processed message IDs to prevent duplicates
-    const processedMessageIds = new Set<string>();
+    // const processedMessageIds = new Set<string>();
 
     const handleNewMessage = (data: any) => {
       try {
@@ -682,7 +679,5 @@ export const useMessagingWebSocket = () => {
   }, [initializeMessagingHandlers]);
 };
 
-// Import React hooks
-import { useState } from "react";
 
 export default useWebSocketStore;

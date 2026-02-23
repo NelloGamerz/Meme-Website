@@ -20,7 +20,7 @@ export const MessagingPage: React.FC = () => {
   const isLoadingRecentChatRooms = useChatStore((s) => s.isLoadingRecentChatRooms);
   const isLoadingMessages = useChatStore((s) => s.isLoadingMessages);
   const typingUsers = useChatStore((s) => s.typingUsers);
-  const error = useChatStore((s) => s.error);
+  // const error = useChatStore((s) => s.error);
   const fetchRecentChatRooms = useChatStore((s) => s.fetchRecentChatRooms);
   const setActiveChatRoom = useChatStore((s) => s.setActiveChatRoom);
   const sendMessage = useChatStore((s) => s.sendMessage);
